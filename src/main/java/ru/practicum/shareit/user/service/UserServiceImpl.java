@@ -2,6 +2,7 @@ package ru.practicum.shareit.user.service;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import ru.practicum.shareit.common.exception.AlreadyExistException;
 import ru.practicum.shareit.common.exception.ObjectNotFoundException;
 import ru.practicum.shareit.common.exception.ValidationException;
 import ru.practicum.shareit.user.dto.UserDto;
@@ -29,7 +30,7 @@ class UserServiceImpl implements UserService {
     public UserDto save(UserDto user) {
         User userModel = UserMapper.toModel(user);
         User currentUser = repository.save(userModel)
-                .orElseThrow(() -> new ValidationException("email should be unique"));
+                .orElseThrow(() -> new AlreadyExistException("email should be unique"));
         return UserMapper.toDto(currentUser);
     }
 

@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
+import ru.practicum.shareit.common.exception.AlreadyExistException;
 import ru.practicum.shareit.common.exception.ObjectNotFoundException;
 import ru.practicum.shareit.common.exception.ValidationException;
 import ru.practicum.shareit.common.model.ErrorResponse;
@@ -51,6 +52,14 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(ObjectNotFoundException.class)
     @ResponseStatus(HttpStatus.NOT_FOUND)
     public ErrorResponse handleNotFoundException(ObjectNotFoundException ex) {
+        List<String> errors = Collections.singletonList(ex.getMessage());
+        log.info(errors.toString());
+        return new ErrorResponse(errors);
+    }
+
+    @ExceptionHandler(AlreadyExistException.class)
+    @ResponseStatus(HttpStatus.CONFLICT)
+    public ErrorResponse handleAlreadyExist(AlreadyExistException ex) {
         List<String> errors = Collections.singletonList(ex.getMessage());
         log.info(errors.toString());
         return new ErrorResponse(errors);

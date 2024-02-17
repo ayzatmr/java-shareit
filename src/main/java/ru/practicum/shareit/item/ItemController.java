@@ -9,7 +9,6 @@ import ru.practicum.shareit.item.service.ItemService;
 
 import javax.validation.Valid;
 import javax.validation.constraints.NotEmpty;
-import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Positive;
 import java.util.List;
 
@@ -21,18 +20,18 @@ public class ItemController {
     private final ItemService itemService;
 
     @GetMapping
-    public List<ItemDto> findAll(@NotNull @RequestHeader("X-Later-User-Id") long userId) {
+    public List<ItemDto> findAll(@RequestHeader("X-Later-User-Id") long userId) {
         return itemService.getItems(userId);
     }
 
     @PostMapping
-    public ItemDto add(@NotNull @RequestHeader("X-Later-User-Id") Long userId,
+    public ItemDto add(@RequestHeader("X-Later-User-Id") Long userId,
                        @Valid @RequestBody ItemDto item) {
         return itemService.addNewItem(userId, item);
     }
 
     @DeleteMapping("/{itemId}")
-    public void deleteItem(@NotNull @RequestHeader("X-Later-User-Id") long userId,
+    public void deleteItem(@RequestHeader("X-Later-User-Id") long userId,
                            @Positive @PathVariable long itemId) {
         itemService.deleteItem(userId, itemId);
     }
@@ -43,7 +42,7 @@ public class ItemController {
     }
 
     @PatchMapping("/{itemId}")
-    public ItemDto patchItem(@NotNull @RequestHeader("X-Later-User-Id") long userId,
+    public ItemDto patchItem(@RequestHeader("X-Later-User-Id") long userId,
                              @Positive @PathVariable long itemId,
                              @Valid @RequestBody ItemPatchDto itemDto) {
         itemDto.setId(itemId);

@@ -20,13 +20,13 @@ public class UserController {
     private final UserService userService;
 
     @GetMapping("/{userId}")
-    public UserDto getUser(@Positive @PathVariable Long userId) {
+    public UserDto getUser(@NotNull @Positive @PathVariable Long userId) {
         return userService.get(userId);
     }
 
-    @DeleteMapping()
+    @DeleteMapping("/{userId}")
     @ResponseStatus(value = HttpStatus.NO_CONTENT)
-    public void deleteUser(@NotNull @RequestHeader("X-Later-User-Id") long userId) {
+    public void deleteUser(@NotNull @Positive @PathVariable long userId) {
         userService.delete(userId);
     }
 
@@ -40,9 +40,9 @@ public class UserController {
         return userService.save(user);
     }
 
-    @PutMapping
+    @PatchMapping("/{userId}")
     public UserDto updateUser(@Valid @RequestBody UserDto user,
-                              @NotNull @RequestHeader("X-Later-User-Id") long userId) {
+                              @PathVariable long userId) {
         return userService.update(user, userId);
     }
 }
