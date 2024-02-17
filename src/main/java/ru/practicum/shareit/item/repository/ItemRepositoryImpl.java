@@ -2,7 +2,6 @@ package ru.practicum.shareit.item.repository;
 
 import org.springframework.stereotype.Repository;
 import ru.practicum.shareit.item.model.Item;
-import ru.practicum.shareit.item.model.ItemStatus;
 
 import java.util.HashMap;
 import java.util.List;
@@ -33,7 +32,6 @@ public class ItemRepositoryImpl implements ItemRepository {
     @Override
     public Optional<Item> save(Item item) {
         item.setId((long) uniqueId.incrementAndGet());
-        item.setItemStatus(ItemStatus.AVAILABLE);
         items.put(item.getId(), item);
         return Optional.of(item);
     }
@@ -43,7 +41,6 @@ public class ItemRepositoryImpl implements ItemRepository {
         Optional<Item> currentItem = get(item.getId());
         if (currentItem.isPresent()) {
             items.put(item.getId(), item);
-            return currentItem;
         }
         return Optional.of(item);
     }
@@ -57,8 +54,9 @@ public class ItemRepositoryImpl implements ItemRepository {
     public List<Item> search(String text) {
         return items.values()
                 .stream()
-                .filter(i -> (i.getName().contains(text) || i.getDescription().contains(text))
-                        && i.getItemStatus() == ItemStatus.AVAILABLE)
+                .filter(i -> (i.getName().toLowerCase().contains(text)
+                        || i.getDescription().toLowerCase().contains(text))
+                        && i.getAvailable())
                 .distinct()
                 .collect(Collectors.toList());
     }

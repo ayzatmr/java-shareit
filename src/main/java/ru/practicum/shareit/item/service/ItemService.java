@@ -15,7 +15,7 @@ public interface ItemService {
 
     void deleteItem(long userId, long itemId);
 
-    ItemDto patchItem(long userId, ItemPatchDto itemDto);
+    ItemDto patchItem(long userId, ItemPatchDto itemDto, long itemId);
 
     List<ItemDto> search(String text);
 }

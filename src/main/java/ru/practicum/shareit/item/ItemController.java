@@ -8,7 +8,6 @@ import ru.practicum.shareit.item.dto.ItemPatchDto;
 import ru.practicum.shareit.item.service.ItemService;
 
 import javax.validation.Valid;
-import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.Positive;
 import java.util.List;
 
@@ -37,20 +36,19 @@ public class ItemController {
     }
 
     @GetMapping("/{itemId}")
-    public void get(@Positive @PathVariable long itemId) {
-        itemService.get(itemId);
+    public ItemDto get(@Positive @PathVariable long itemId) {
+        return itemService.get(itemId);
     }
 
     @PatchMapping("/{itemId}")
     public ItemDto patchItem(@RequestHeader("X-Sharer-User-Id") long userId,
                              @Positive @PathVariable long itemId,
                              @Valid @RequestBody ItemPatchDto itemDto) {
-        itemDto.setId(itemId);
-        return itemService.patchItem(userId, itemDto);
+        return itemService.patchItem(userId, itemDto, itemId);
     }
 
     @GetMapping("/search")
-    public List<ItemDto> search(@NotEmpty @RequestParam String text) {
+    public List<ItemDto> search(@RequestParam String text) {
         return itemService.search(text);
     }
 }

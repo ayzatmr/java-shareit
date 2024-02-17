@@ -32,9 +32,8 @@ public class UserRepositoryImpl implements UserRepository {
         Optional<User> currentUser = get(user.getId());
         if (currentUser.isPresent()) {
             users.put(user.getId(), user);
-            return Optional.of(user);
         }
-        return currentUser;
+        return Optional.of(user);
     }
 
     @Override

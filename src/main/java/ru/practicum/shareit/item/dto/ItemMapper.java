@@ -8,22 +8,19 @@ public class ItemMapper {
     public static ItemDto toDto(Item item) {
         return ItemDto.builder()
                 .id(item.getId())
-                .userId(item.getUserId())
-                .url(item.getUrl())
                 .name(item.getName())
                 .description(item.getDescription())
-                .itemStatus(item.getItemStatus())
+                .available(item.getAvailable())
                 .build();
     }
 
-    public static Item toModel(ItemDto itemDto) {
+    public static Item toModel(ItemDto itemDto, long userId) {
         return Item.builder()
                 .id(itemDto.getId())
-                .userId(itemDto.getUserId())
-                .url(itemDto.getUrl())
+                .userId(userId)
                 .name(itemDto.getName())
                 .description(itemDto.getDescription())
-                .itemStatus(itemDto.getItemStatus())
+                .available(itemDto.getAvailable())
                 .build();
     }
 }
