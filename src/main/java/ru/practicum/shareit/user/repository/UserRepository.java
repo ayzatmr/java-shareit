@@ -11,7 +11,7 @@ public interface UserRepository {
 
     Optional<User> save(User user);
 
-    Optional<User> update(User user);
+    Optional<User> patch(User user);
 
     void delete(long userId);
 

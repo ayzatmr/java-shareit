@@ -1,6 +1,7 @@
 package ru.practicum.shareit.user.repository;
 
 import org.springframework.stereotype.Repository;
+import ru.practicum.shareit.common.exception.AlreadyExistException;
 import ru.practicum.shareit.user.model.User;
 
 import java.util.HashMap;
@@ -22,18 +23,15 @@ public class UserRepositoryImpl implements UserRepository {
 
     @Override
     public Optional<User> save(User user) {
-        boolean present = users.values().stream()
-                .anyMatch(i -> i.getEmail().equals(user.getEmail()));
-        if (present) {
-            return Optional.empty();
-        }
+        checkEmailUniqueness(user);
         user.setId((long) uniqueId.incrementAndGet());
         users.put(user.getId(), user);
         return Optional.of(user);
     }
 
     @Override
-    public Optional<User> update(User user) {
+    public Optional<User> patch(User user) {
+        checkEmailUniqueness(user);
         Optional<User> currentUser = get(user.getId());
         if (currentUser.isPresent()) {
             users.put(user.getId(), user);
@@ -50,5 +48,13 @@ public class UserRepositoryImpl implements UserRepository {
     @Override
     public Optional<User> get(Long userId) {
         return Optional.of(users.get(userId));
+    }
+
+    private void checkEmailUniqueness(User user) {
+        boolean present = users.values().stream()
+                .anyMatch(i -> i.getEmail().equals(user.getEmail()));
+        if (present) {
+            throw new AlreadyExistException("email should be unique");
+        }
     }
 }

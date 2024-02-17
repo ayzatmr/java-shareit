@@ -5,6 +5,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import ru.practicum.shareit.user.dto.UserDto;
+import ru.practicum.shareit.user.dto.UserPatchDto;
 import ru.practicum.shareit.user.service.UserService;
 
 import javax.validation.Valid;
@@ -41,8 +42,8 @@ public class UserController {
     }
 
     @PatchMapping("/{userId}")
-    public UserDto updateUser(@Valid @RequestBody UserDto user,
-                              @PathVariable long userId) {
-        return userService.update(user, userId);
+    public UserDto patchUser(@Valid @RequestBody UserPatchDto user,
+                             @PathVariable long userId) {
+        return userService.patch(user, userId);
     }
 }
