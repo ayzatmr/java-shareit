@@ -5,9 +5,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import ru.practicum.shareit.item.model.ItemStatus;
-import ru.practicum.shareit.user.model.User;
 
-import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
 
 
@@ -15,24 +13,14 @@ import javax.validation.constraints.Size;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder(toBuilder = true)
-public class ItemDto {
+public class ItemPatchDto {
     private Long id;
 
-    @NotNull
-    private Long userId;
-
-    @NotNull
-    private String url;
-
-    @NotNull
     @Size(max = 100, message = "max name size is 100")
     private String name;
 
     @Size(max = 500, message = "max description size is 200")
     private String description;
-
-    @NotNull
-    private User owner;
 
     private ItemStatus itemStatus;
 }
