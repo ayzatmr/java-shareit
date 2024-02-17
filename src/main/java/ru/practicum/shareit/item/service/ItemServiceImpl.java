@@ -53,8 +53,17 @@ public class ItemServiceImpl implements ItemService {
 
     @Override
     public ItemDto patchItem(long userId, ItemPatchDto itemDto) {
-        Item itemToPatch = repository.get(itemDto.getId())
+        Item itemFromDB = repository.get(itemDto.getId())
                 .orElseThrow(() -> new ObjectNotFoundException("item is not found"));
+        Item itemToPatch = new Item().toBuilder()
+                .id(itemFromDB.getId())
+                .userId(itemFromDB.getUserId())
+                .name(itemFromDB.getName())
+                .description(itemFromDB.getDescription())
+                .owner(itemFromDB.getOwner())
+                .itemStatus(itemFromDB.getItemStatus())
+                .build();
+
         if (!itemToPatch.getUserId().equals(userId)) {
             throw new ValidationException("you can not update that item");
         }
@@ -70,6 +79,7 @@ public class ItemServiceImpl implements ItemService {
         Item updatedItem = repository.patch(itemToPatch).get();
         return ItemMapper.toDto(updatedItem);
     }
+
 
     @Override
     public List<ItemDto> search(String text) {

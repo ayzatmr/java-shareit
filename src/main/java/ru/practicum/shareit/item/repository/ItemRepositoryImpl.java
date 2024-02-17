@@ -27,7 +27,7 @@ public class ItemRepositoryImpl implements ItemRepository {
 
     @Override
     public Optional<Item> get(long itemId) {
-        return Optional.of(items.get(itemId));
+        return Optional.ofNullable(items.get(itemId));
     }
 
     @Override

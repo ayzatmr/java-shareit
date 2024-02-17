@@ -36,14 +36,18 @@ class UserServiceImpl implements UserService {
 
     @Override
     public UserDto patch(UserPatchDto user, Long userId) {
-        User userToPatch = repository.get(userId)
+        User userFromDB = repository.get(userId)
                 .orElseThrow(() -> new ObjectNotFoundException("user is not found"));
-
+        User userToPatch = new User().toBuilder()
+                .id(userId)
+                .email(userFromDB.getEmail())
+                .name(userFromDB.getName())
+                .build();
         if (user.getName() != null) {
-            userToPatch.setName(userToPatch.getName());
+            userToPatch.setName(user.getName());
         }
         if (user.getEmail() != null) {
-            userToPatch.setEmail(userToPatch.getEmail());
+            userToPatch.setEmail(user.getEmail());
         }
         User currentUser = repository.patch(userToPatch).get();
         return UserMapper.toDto(currentUser);

@@ -47,7 +47,7 @@ public class UserRepositoryImpl implements UserRepository {
 
     @Override
     public Optional<User> get(Long userId) {
-        return Optional.of(users.get(userId));
+        return Optional.ofNullable(users.get(userId));
     }
 
     private void checkEmailUniqueness(User user) {
