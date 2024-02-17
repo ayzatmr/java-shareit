@@ -2,6 +2,7 @@ package ru.practicum.shareit.user.service;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import ru.practicum.shareit.common.exception.AlreadyExistException;
 import ru.practicum.shareit.common.exception.ObjectNotFoundException;
 import ru.practicum.shareit.common.exception.ValidationException;
 import ru.practicum.shareit.user.dto.UserDto;
@@ -11,6 +12,7 @@ import ru.practicum.shareit.user.model.User;
 import ru.practicum.shareit.user.repository.UserRepository;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -28,6 +30,11 @@ class UserServiceImpl implements UserService {
 
     @Override
     public UserDto save(UserDto user) {
+        boolean present = getAllUsers().stream()
+                .anyMatch(i -> i.getEmail().equals(user.getEmail()));
+        if (present) {
+            throw new AlreadyExistException("email should be unique");
+        }
         User userModel = UserMapper.toModel(user);
         User currentUser = repository.save(userModel)
                 .orElseThrow(() -> new ValidationException("can not create user"));
@@ -47,6 +54,15 @@ class UserServiceImpl implements UserService {
             userToPatch.setName(user.getName());
         }
         if (user.getEmail() != null) {
+            Optional<UserDto> foundUser = getAllUsers()
+                    .stream()
+                    .filter(i -> i.getEmail().equals(user.getEmail()))
+                    .findFirst();
+            if (foundUser.isPresent()) {
+                if (!foundUser.get().getEmail().equals(user.getEmail())) {
+                    throw new AlreadyExistException("email should be unique");
+                }
+            }
             userToPatch.setEmail(user.getEmail());
         }
         User currentUser = repository.patch(userToPatch).get();

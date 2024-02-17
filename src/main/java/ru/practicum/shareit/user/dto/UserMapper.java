@@ -20,4 +20,11 @@ public class UserMapper {
                 .name(userDto.getName())
                 .build();
     }
+
+    public static UserPatchDto toPatchDto(UserDto userDto) {
+        return UserPatchDto.builder()
+                .email(userDto.getEmail())
+                .name(userDto.getName())
+                .build();
+    }
 }
