@@ -59,7 +59,7 @@ class UserServiceImpl implements UserService {
                     .filter(i -> i.getEmail().equals(user.getEmail()))
                     .findFirst();
             if (foundUser.isPresent()) {
-                if (!foundUser.get().getEmail().equals(user.getEmail())) {
+                if (!foundUser.get().getId().equals(userId)) {
                     throw new AlreadyExistException("email should be unique");
                 }
             }
