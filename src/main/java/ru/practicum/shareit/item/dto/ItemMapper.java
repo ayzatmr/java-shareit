@@ -12,7 +12,6 @@ public class ItemMapper {
                 .url(item.getUrl())
                 .name(item.getName())
                 .description(item.getDescription())
-                .owner(item.getOwner())
                 .itemStatus(item.getItemStatus())
                 .build();
     }
@@ -24,7 +23,6 @@ public class ItemMapper {
                 .url(itemDto.getUrl())
                 .name(itemDto.getName())
                 .description(itemDto.getDescription())
-                .owner(itemDto.getOwner())
                 .itemStatus(itemDto.getItemStatus())
                 .build();
     }

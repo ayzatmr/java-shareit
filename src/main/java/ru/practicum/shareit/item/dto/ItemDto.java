@@ -5,7 +5,6 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import ru.practicum.shareit.item.model.ItemStatus;
-import ru.practicum.shareit.user.model.User;
 
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
@@ -18,21 +17,18 @@ import javax.validation.constraints.Size;
 public class ItemDto {
     private Long id;
 
-    @NotNull
+    @NotNull(message = "userId can not be null")
     private Long userId;
 
-    @NotNull
+    @NotNull(message = "url can not be null")
     private String url;
 
-    @NotNull
+    @NotNull(message = "name can not be null")
     @Size(max = 100, message = "max name size is 100")
     private String name;
 
-    @Size(max = 500, message = "max description size is 200")
+    @Size(max = 500, message = "max description size is 500")
     private String description;
-
-    @NotNull
-    private User owner;
 
     private ItemStatus itemStatus;
 }
