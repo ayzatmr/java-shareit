@@ -4,10 +4,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import ru.practicum.shareit.common.exception.AlreadyExistException;
 import ru.practicum.shareit.common.exception.ObjectNotFoundException;
-import ru.practicum.shareit.common.exception.ValidationException;
 import ru.practicum.shareit.user.dto.UserDto;
 import ru.practicum.shareit.user.dto.UserMapper;
-import ru.practicum.shareit.user.dto.UserPatchDto;
 import ru.practicum.shareit.user.model.User;
 import ru.practicum.shareit.user.repository.UserRepository;
 
@@ -36,24 +34,18 @@ class UserServiceImpl implements UserService {
             throw new AlreadyExistException("email should be unique");
         }
         User userModel = UserMapper.toModel(user);
-        User currentUser = repository.save(userModel)
-                .orElseThrow(() -> new ValidationException("can not create user"));
+        User currentUser = repository.save(userModel);
         return UserMapper.toDto(currentUser);
     }
 
     @Override
-    public UserDto patch(UserPatchDto user, Long userId) {
+    public UserDto patch(UserDto user, Long userId) {
         User userFromDB = repository.get(userId)
                 .orElseThrow(() -> new ObjectNotFoundException("user is not found"));
-        User userToPatch = new User().toBuilder()
-                .id(userId)
-                .email(userFromDB.getEmail())
-                .name(userFromDB.getName())
-                .build();
-        if (user.getName() != null) {
-            userToPatch.setName(user.getName());
+        if (user.getName() != null && !user.getName().isBlank()) {
+            userFromDB.setName(user.getName());
         }
-        if (user.getEmail() != null) {
+        if (user.getEmail() != null && !user.getEmail().isBlank()) {
             Optional<UserDto> foundUser = getAllUsers()
                     .stream()
                     .filter(i -> i.getEmail().equals(user.getEmail()))
@@ -63,9 +55,9 @@ class UserServiceImpl implements UserService {
                     throw new AlreadyExistException("email should be unique");
                 }
             }
-            userToPatch.setEmail(user.getEmail());
+            userFromDB.setEmail(user.getEmail());
         }
-        User currentUser = repository.patch(userToPatch).get();
+        User currentUser = repository.patch(userFromDB);
         return UserMapper.toDto(currentUser);
     }
 

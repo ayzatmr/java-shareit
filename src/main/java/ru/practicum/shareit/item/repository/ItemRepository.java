@@ -13,9 +13,9 @@ public interface ItemRepository {
 
     Optional<Item> get(long itemId);
 
-    Optional<Item> save(Item item);
+    Item save(Item item);
 
-    Optional<Item> patch(Item item);
+    Item patch(Item item);
 
     void delete(long itemId);
 

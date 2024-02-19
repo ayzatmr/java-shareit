@@ -4,12 +4,14 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import ru.practicum.shareit.item.dto.ItemDto;
-import ru.practicum.shareit.item.dto.ItemPatchDto;
 import ru.practicum.shareit.item.service.ItemService;
+import ru.practicum.shareit.user.dto.Create;
+import ru.practicum.shareit.user.dto.Update;
 
-import javax.validation.Valid;
 import javax.validation.constraints.Positive;
 import java.util.List;
+
+import static ru.practicum.shareit.common.model.Constants.USER_HEADER;
 
 @RestController
 @RequestMapping("/items")
@@ -19,18 +21,18 @@ public class ItemController {
     private final ItemService itemService;
 
     @GetMapping
-    public List<ItemDto> findAll(@RequestHeader("X-Sharer-User-Id") long userId) {
+    public List<ItemDto> findAll(@RequestHeader(USER_HEADER) long userId) {
         return itemService.getItems(userId);
     }
 
     @PostMapping
-    public ItemDto add(@RequestHeader("X-Sharer-User-Id") Long userId,
-                       @Valid @RequestBody ItemDto item) {
+    public ItemDto add(@RequestHeader(USER_HEADER) Long userId,
+                       @Validated(Create.class) @RequestBody ItemDto item) {
         return itemService.addNewItem(userId, item);
     }
 
     @DeleteMapping("/{itemId}")
-    public void deleteItem(@RequestHeader("X-Sharer-User-Id") long userId,
+    public void deleteItem(@RequestHeader(USER_HEADER) long userId,
                            @Positive @PathVariable long itemId) {
         itemService.deleteItem(userId, itemId);
     }
@@ -41,9 +43,9 @@ public class ItemController {
     }
 
     @PatchMapping("/{itemId}")
-    public ItemDto patchItem(@RequestHeader("X-Sharer-User-Id") long userId,
+    public ItemDto patchItem(@RequestHeader(USER_HEADER) long userId,
                              @Positive @PathVariable long itemId,
-                             @Valid @RequestBody ItemPatchDto itemDto) {
+                             @Validated(Update.class) @RequestBody ItemDto itemDto) {
         return itemService.patchItem(userId, itemDto, itemId);
     }
 

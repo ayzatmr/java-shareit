@@ -6,7 +6,6 @@ import ru.practicum.shareit.common.exception.ObjectNotFoundException;
 import ru.practicum.shareit.common.exception.ValidationException;
 import ru.practicum.shareit.item.dto.ItemDto;
 import ru.practicum.shareit.item.dto.ItemMapper;
-import ru.practicum.shareit.item.dto.ItemPatchDto;
 import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.item.repository.ItemRepository;
 import ru.practicum.shareit.user.repository.UserRepository;
@@ -40,8 +39,7 @@ public class ItemServiceImpl implements ItemService {
     @Override
     public ItemDto addNewItem(long userId, ItemDto item) {
         checkUser(userId);
-        Item newItem = itemRepository.save(ItemMapper.toModel(item, userId))
-                .orElseThrow(() -> new ValidationException("something went wrong"));
+        Item newItem = itemRepository.save(ItemMapper.toModel(item, userId));
         return ItemMapper.toDto(newItem);
     }
 
@@ -57,37 +55,30 @@ public class ItemServiceImpl implements ItemService {
     }
 
     @Override
-    public ItemDto patchItem(long userId, ItemPatchDto itemDto, long itemId) {
+    public ItemDto patchItem(long userId, ItemDto itemDto, long itemId) {
         checkUser(userId);
         Item itemFromDB = itemRepository.get(itemId)
                 .orElseThrow(() -> new ObjectNotFoundException("item is not found"));
         if (!itemFromDB.getUserId().equals(userId)) {
             throw new ObjectNotFoundException("you can not update that item");
         }
-        Item itemToPatch = new Item().toBuilder()
-                .id(itemFromDB.getId())
-                .userId(itemFromDB.getUserId())
-                .name(itemFromDB.getName())
-                .description(itemFromDB.getDescription())
-                .available(itemFromDB.getAvailable())
-                .build();
 
-        if (itemDto.getName() != null) {
-            itemToPatch.setName(itemDto.getName());
+        if (itemDto.getName() != null && !itemDto.getName().isBlank()) {
+            itemFromDB.setName(itemDto.getName());
         }
-        if (itemDto.getDescription() != null) {
-            itemToPatch.setDescription(itemDto.getDescription());
+        if (itemDto.getDescription() != null && !itemDto.getDescription().isBlank()) {
+            itemFromDB.setDescription(itemDto.getDescription());
         }
         if (itemDto.getAvailable() != null) {
-            itemToPatch.setAvailable(itemDto.getAvailable());
+            itemFromDB.setAvailable(itemDto.getAvailable());
         }
-        Item updatedItem = itemRepository.patch(itemToPatch).get();
+        Item updatedItem = itemRepository.patch(itemFromDB);
         return ItemMapper.toDto(updatedItem);
     }
 
     @Override
     public List<ItemDto> search(String text) {
-        if (text == null || text.isEmpty()) {
+        if (text.isBlank()) {
             return new ArrayList<>();
         }
         return itemRepository.search(text.toLowerCase())

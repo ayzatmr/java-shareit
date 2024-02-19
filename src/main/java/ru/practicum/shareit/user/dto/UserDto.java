@@ -6,6 +6,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import javax.validation.constraints.Email;
+import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotEmpty;
 
 @Data
@@ -15,10 +16,10 @@ import javax.validation.constraints.NotEmpty;
 public class UserDto {
     private Long id;
 
-    @Email(message = "email should be valid")
-    @NotEmpty(message = "email can not be empty")
+    @Email(message = "email should be valid", groups = {Update.class, Create.class})
+    @NotEmpty(message = "email can not be empty", groups = {Create.class})
     private String email;
 
-    @NotEmpty(message = "name can not be empty")
+    @NotBlank(message = "name can not be blank", groups = {Create.class})
     private String name;
 }

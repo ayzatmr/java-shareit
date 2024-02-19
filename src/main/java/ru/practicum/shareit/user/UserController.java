@@ -4,12 +4,11 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+import ru.practicum.shareit.user.dto.Create;
+import ru.practicum.shareit.user.dto.Update;
 import ru.practicum.shareit.user.dto.UserDto;
-import ru.practicum.shareit.user.dto.UserPatchDto;
 import ru.practicum.shareit.user.service.UserService;
 
-import javax.validation.Valid;
-import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Positive;
 import java.util.List;
 
@@ -21,13 +20,13 @@ public class UserController {
     private final UserService userService;
 
     @GetMapping("/{userId}")
-    public UserDto getUser(@NotNull @Positive @PathVariable Long userId) {
+    public UserDto getUser(@Positive @PathVariable Long userId) {
         return userService.get(userId);
     }
 
     @DeleteMapping("/{userId}")
     @ResponseStatus(value = HttpStatus.NO_CONTENT)
-    public void deleteUser(@NotNull @Positive @PathVariable long userId) {
+    public void deleteUser(@Positive @PathVariable long userId) {
         userService.delete(userId);
     }
 
@@ -37,12 +36,12 @@ public class UserController {
     }
 
     @PostMapping
-    public UserDto createUser(@Valid @RequestBody UserDto user) {
+    public UserDto createUser(@Validated(Create.class) @RequestBody UserDto user) {
         return userService.save(user);
     }
 
     @PatchMapping("/{userId}")
-    public UserDto patchUser(@Valid @RequestBody UserPatchDto user,
+    public UserDto patchUser(@Validated(Update.class) @RequestBody UserDto user,
                              @PathVariable long userId) {
         return userService.patch(user, userId);
     }

@@ -7,13 +7,13 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
 
 @Repository
 public class ItemRepositoryImpl implements ItemRepository {
     private final Map<Long, Item> items = new HashMap<>();
-    private final AtomicInteger uniqueId = new AtomicInteger();
+    private final AtomicLong uniqueId = new AtomicLong();
 
 
     @Override
@@ -30,19 +30,19 @@ public class ItemRepositoryImpl implements ItemRepository {
     }
 
     @Override
-    public Optional<Item> save(Item item) {
-        item.setId((long) uniqueId.incrementAndGet());
+    public Item save(Item item) {
+        item.setId(uniqueId.incrementAndGet());
         items.put(item.getId(), item);
-        return Optional.of(item);
+        return item;
     }
 
     @Override
-    public Optional<Item> patch(Item item) {
+    public Item patch(Item item) {
         Optional<Item> currentItem = get(item.getId());
         if (currentItem.isPresent()) {
             items.put(item.getId(), item);
         }
-        return Optional.of(item);
+        return item;
     }
 
     @Override
