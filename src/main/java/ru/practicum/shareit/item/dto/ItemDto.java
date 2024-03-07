@@ -10,6 +10,8 @@ import ru.practicum.shareit.user.dto.Update;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
+import java.util.ArrayList;
+import java.util.List;
 
 
 @Data
@@ -29,4 +31,10 @@ public class ItemDto {
 
     @NotNull(message = "available can not be null", groups = {Create.class})
     private Boolean available;
+
+    private ItemBookingDto lastBooking;
+
+    private ItemBookingDto nextBooking;
+
+    private List<CommentDto> comments = new ArrayList<>();
 }

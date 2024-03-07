@@ -3,6 +3,7 @@ package ru.practicum.shareit.item;
 import lombok.RequiredArgsConstructor;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+import ru.practicum.shareit.item.dto.CommentDto;
 import ru.practicum.shareit.item.dto.ItemDto;
 import ru.practicum.shareit.item.service.ItemService;
 import ru.practicum.shareit.user.dto.Create;
@@ -38,8 +39,9 @@ public class ItemController {
     }
 
     @GetMapping("/{itemId}")
-    public ItemDto get(@Positive @PathVariable long itemId) {
-        return itemService.get(itemId);
+    public ItemDto get(@RequestHeader(USER_HEADER) long userId,
+                       @Positive @PathVariable long itemId) {
+        return itemService.get(itemId, userId);
     }
 
     @PatchMapping("/{itemId}")
@@ -52,5 +54,12 @@ public class ItemController {
     @GetMapping("/search")
     public List<ItemDto> search(@RequestParam String text) {
         return itemService.search(text);
+    }
+
+    @PostMapping("/{itemId}/comment")
+    public CommentDto addCommentToItem(@RequestHeader(USER_HEADER) Long userId,
+                                       @PathVariable Long itemId,
+                                       @Validated(Create.class) @RequestBody CommentDto commentDto) {
+        return itemService.addCommentToItem(userId, itemId, commentDto);
     }
 }
