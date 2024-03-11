@@ -22,6 +22,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import static ru.practicum.shareit.common.model.Constants.DEFAULT_SORTING;
+
 @Service
 @RequiredArgsConstructor
 @Transactional
@@ -30,6 +32,7 @@ public class BookingServiceImpl implements BookingService {
     private final UserRepository userRepository;
     private final ItemRepository itemRepository;
     private final BookingMapper bookingMapper;
+
 
     @Override
     public BookingDto create(Long userId, NewBookingDto bookingDto) {
@@ -122,13 +125,13 @@ public class BookingServiceImpl implements BookingService {
     private List<Booking> getByBooker(BookingState state, Long bookerId) {
         switch (state) {
             case ALL:
-                return bookingRepository.findAllByBooker(bookerId);
+                return bookingRepository.findAllByBooker(bookerId, DEFAULT_SORTING);
             case CURRENT:
-                return bookingRepository.findCurrentByBooker(bookerId, LocalDateTime.now(), LocalDateTime.now());
+                return bookingRepository.findCurrentByBooker(bookerId, LocalDateTime.now(), LocalDateTime.now(), DEFAULT_SORTING);
             case PAST:
-                return bookingRepository.findPastByBooker(bookerId, LocalDateTime.now());
+                return bookingRepository.findPastByBooker(bookerId, LocalDateTime.now(), DEFAULT_SORTING);
             case FUTURE:
-                return bookingRepository.findFutureByBooker(bookerId, LocalDateTime.now());
+                return bookingRepository.findFutureByBooker(bookerId, LocalDateTime.now(), DEFAULT_SORTING);
             case WAITING:
                 return bookingRepository.findByBookerAndStatus(bookerId, BookingStatus.WAITING);
             case REJECTED:
@@ -140,13 +143,13 @@ public class BookingServiceImpl implements BookingService {
     private List<Booking> getByUser(BookingState state, Long userId) {
         switch (state) {
             case ALL:
-                return bookingRepository.findAllByItemOwnerId(userId);
+                return bookingRepository.findAllByItemOwnerId(userId, DEFAULT_SORTING);
             case CURRENT:
-                return bookingRepository.findCurrentByOwnerId(userId, LocalDateTime.now(), LocalDateTime.now());
+                return bookingRepository.findCurrentByOwnerId(userId, LocalDateTime.now(), LocalDateTime.now(), DEFAULT_SORTING);
             case PAST:
-                return bookingRepository.findPastByOwnerId(userId, LocalDateTime.now());
+                return bookingRepository.findPastByOwnerId(userId, LocalDateTime.now(), DEFAULT_SORTING);
             case FUTURE:
-                return bookingRepository.findFutureByOwnerId(userId, LocalDateTime.now());
+                return bookingRepository.findFutureByOwnerId(userId, LocalDateTime.now(), DEFAULT_SORTING);
             case WAITING:
                 return bookingRepository.finByOwnerAndStatus(userId, BookingStatus.WAITING);
             case REJECTED:
