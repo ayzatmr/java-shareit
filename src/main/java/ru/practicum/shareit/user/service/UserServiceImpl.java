@@ -5,42 +5,40 @@ import org.springframework.stereotype.Service;
 import ru.practicum.shareit.common.exception.AlreadyExistException;
 import ru.practicum.shareit.common.exception.ObjectNotFoundException;
 import ru.practicum.shareit.user.dto.UserDto;
-import ru.practicum.shareit.user.dto.UserMapper;
+import ru.practicum.shareit.user.mapper.UserMapper;
 import ru.practicum.shareit.user.model.User;
 import ru.practicum.shareit.user.repository.UserRepository;
 
+import javax.transaction.Transactional;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
+@Transactional
 class UserServiceImpl implements UserService {
     private final UserRepository repository;
+    private final UserMapper userMapper;
 
     @Override
     public List<UserDto> getAllUsers() {
         return repository.findAll()
                 .stream()
-                .map(UserMapper::toDto)
+                .map(userMapper::toDto)
                 .collect(Collectors.toList());
     }
 
     @Override
     public UserDto save(UserDto user) {
-        boolean present = getAllUsers().stream()
-                .anyMatch(i -> i.getEmail().equals(user.getEmail()));
-        if (present) {
-            throw new AlreadyExistException("email should be unique");
-        }
-        User userModel = UserMapper.toModel(user);
+        User userModel = userMapper.toModel(user);
         User currentUser = repository.save(userModel);
-        return UserMapper.toDto(currentUser);
+        return userMapper.toDto(currentUser);
     }
 
     @Override
     public UserDto patch(UserDto user, Long userId) {
-        User userFromDB = repository.get(userId)
+        User userFromDB = repository.findById(userId)
                 .orElseThrow(() -> new ObjectNotFoundException("user is not found"));
         if (user.getName() != null && !user.getName().isBlank()) {
             userFromDB.setName(user.getName());
@@ -57,19 +55,19 @@ class UserServiceImpl implements UserService {
             }
             userFromDB.setEmail(user.getEmail());
         }
-        User currentUser = repository.patch(userFromDB);
-        return UserMapper.toDto(currentUser);
+        User currentUser = repository.save(userFromDB);
+        return userMapper.toDto(currentUser);
     }
 
     @Override
     public void delete(long userId) {
-        repository.delete(userId);
+        repository.deleteById(userId);
     }
 
     @Override
     public UserDto get(Long userId) {
-        User user = repository.get(userId)
+        User user = repository.findById(userId)
                 .orElseThrow(() -> new ObjectNotFoundException("user is not found"));
-        return UserMapper.toDto(user);
+        return userMapper.toDto(user);
     }
 }

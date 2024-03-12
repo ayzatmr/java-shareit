@@ -17,6 +17,7 @@ import ru.practicum.shareit.common.model.ErrorResponse;
 import javax.validation.ConstraintViolationException;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @RestControllerAdvice
@@ -33,12 +34,19 @@ public class GlobalExceptionHandler {
         return new ErrorResponse(errors);
     }
 
-    @ExceptionHandler({MethodArgumentTypeMismatchException.class, ConstraintViolationException.class, ValidationException.class})
+    @ExceptionHandler({ConstraintViolationException.class, ValidationException.class})
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public ErrorResponse handleValidationErrors(RuntimeException ex) {
         List<String> errors = Collections.singletonList(ex.getMessage());
         log.info(errors.toString());
         return new ErrorResponse(errors);
+    }
+
+    @ExceptionHandler
+    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
+    public Map<String, String> handleConversionFailedException(MethodArgumentTypeMismatchException ex) {
+        log.info(ex.getMessage());
+        return Map.of("error", "Unknown state: UNSUPPORTED_STATUS");
     }
 
     @ExceptionHandler(HttpRequestMethodNotSupportedException.class)
