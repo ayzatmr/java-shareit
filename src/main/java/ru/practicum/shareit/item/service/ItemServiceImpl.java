@@ -1,6 +1,8 @@
 package ru.practicum.shareit.item.service;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import ru.practicum.shareit.booking.model.Booking;
 import ru.practicum.shareit.booking.model.BookingStatus;
@@ -37,9 +39,10 @@ public class ItemServiceImpl implements ItemService {
     private final CommentMapper commentMapper;
 
     @Override
-    public List<ItemDto> getItems(long userId) {
+    public List<ItemDto> getItems(long userId, int from, int size) {
         getUser(userId);
-        List<Item> items = itemRepository.findAllByOwnerIdOrderById(userId);
+        Pageable pageRequest = PageRequest.of(from, size);
+        List<Item> items = itemRepository.findAllByOwnerIdOrderById(userId, pageRequest);
         return mergeBookingsAndComments(items);
     }
 
@@ -100,11 +103,12 @@ public class ItemServiceImpl implements ItemService {
     }
 
     @Override
-    public List<ItemDto> search(String text) {
+    public List<ItemDto> search(String text, int from, int size) {
         if (text.isBlank()) {
             return Collections.emptyList();
         }
-        return itemRepository.findAllByNameOrDescription("%" + text.toLowerCase() + "%")
+        Pageable pageRequest = PageRequest.of(from, size);
+        return itemRepository.findAllByNameOrDescription("%" + text.toLowerCase() + "%", pageRequest)
                 .stream()
                 .map(itemMapper::toDto)
                 .collect(Collectors.toList());

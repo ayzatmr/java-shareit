@@ -29,4 +29,6 @@ public class NewItemDto {
 
     @NotNull(message = "available can not be null", groups = {Create.class})
     private Boolean available;
+
+    private Long requestId;
 }

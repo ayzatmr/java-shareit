@@ -11,7 +11,7 @@ import java.util.List;
 public interface ItemService {
     ItemDto addNewItem(long userId, NewItemDto item);
 
-    List<ItemDto> getItems(long userId);
+    List<ItemDto> getItems(long userId, int from, int size);
 
     ItemDto get(long itemId, long userId);
 
@@ -19,7 +19,7 @@ public interface ItemService {
 
     ItemDto patchItem(long userId, NewItemDto itemDto, long itemId);
 
-    List<ItemDto> search(String text);
+    List<ItemDto> search(String text, int from, int size);
 
     CommentDto addCommentToItem(Long userId, Long itemId, NewCommentDto commentDto);
 }
