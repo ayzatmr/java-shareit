@@ -30,11 +30,11 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 @Transactional
 public class BookingServiceImpl implements BookingService {
+    public static final Sort BOOKINGS_SORTING = Sort.by(Sort.Direction.DESC, "start");
     private final BookingRepository bookingRepository;
     private final UserRepository userRepository;
     private final ItemRepository itemRepository;
     private final BookingMapper bookingMapper;
-    public static final Sort BOOKINGS_SORTING = Sort.by(Sort.Direction.DESC, "start");
 
     @Override
     public BookingDto create(Long userId, NewBookingDto bookingDto) {

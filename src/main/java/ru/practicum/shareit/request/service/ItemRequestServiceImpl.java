@@ -23,10 +23,10 @@ import java.util.List;
 @Slf4j
 public class ItemRequestServiceImpl implements ItemRequestService {
 
+    public static final Sort REQUEST_SORTING = Sort.by("created").descending();
     private final ItemRequestRepository itemRequestRepository;
     private final UserRepository userRepository;
     private final ItemRequestMapper itemRequestMapper;
-    public static final Sort REQUEST_SORTING = Sort.by("created").descending();
 
     @Override
     public ItemRequestDto create(Long userId, NewItemRequestDto requestDto) {

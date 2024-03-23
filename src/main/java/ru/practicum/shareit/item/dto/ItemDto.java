@@ -14,17 +14,11 @@ import java.util.List;
 @NoArgsConstructor
 @Builder(toBuilder = true)
 public class ItemDto {
-    private Long id;
-
-    private String name;
-
-    private String description;
-
-    private Boolean available;
-
-    private ItemBookingDto lastBooking;
-
-    private ItemBookingDto nextBooking;
-
     private final List<CommentDto> comments = new ArrayList<>();
+    private Long id;
+    private String name;
+    private String description;
+    private Boolean available;
+    private ItemBookingDto lastBooking;
+    private ItemBookingDto nextBooking;
 }
