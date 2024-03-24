@@ -9,7 +9,9 @@ import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
+import ru.practicum.shareit.common.exception.AlreadyExistException;
 import ru.practicum.shareit.user.UserController;
 import ru.practicum.shareit.user.dto.UserDto;
 import ru.practicum.shareit.user.service.UserService;
@@ -79,6 +81,18 @@ class UserControllerTest {
 
     @Test
     @SneakyThrows
+    void checkHttpRequestMethodNotSupportedException() {
+        mvc.perform(post("/users/1")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(userDto)))
+                .andExpect(status().isMethodNotAllowed())
+                .andExpect(result ->
+                        assertInstanceOf(HttpRequestMethodNotSupportedException.class, result.getResolvedException()));
+        verify(userService, never()).save(userDto);
+    }
+
+    @Test
+    @SneakyThrows
     void updateUser() {
         when(userService.patch(userDto, userDto.getId()))
                 .thenReturn(userDto);
@@ -93,6 +107,24 @@ class UserControllerTest {
                 .andExpect(jsonPath("$.email", is(userDto.getEmail())));
 
         verify(userService, times(1)).patch(userDto, userDto.getId());
+    }
+
+    @Test
+    @SneakyThrows
+    void getAlreadyExistExceptionOnUserUpdate() {
+        Long userId = 300L;
+        when(userService.patch(userDto, userId))
+                .thenThrow(AlreadyExistException.class);
+
+        mvc.perform(patch("/users/{userId}", userId)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(userDto))
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isConflict())
+                .andExpect(result ->
+                        assertInstanceOf(AlreadyExistException.class, result.getResolvedException()));
+
+        verify(userService, times(1)).patch(userDto, userId);
     }
 
     @Test

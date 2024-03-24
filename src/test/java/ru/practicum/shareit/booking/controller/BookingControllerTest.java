@@ -10,11 +10,13 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.MissingRequestHeaderException;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 import ru.practicum.shareit.booking.BookingController;
 import ru.practicum.shareit.booking.dto.BookingDto;
 import ru.practicum.shareit.booking.dto.NewBookingDto;
 import ru.practicum.shareit.booking.model.BookingState;
 import ru.practicum.shareit.booking.service.BookingService;
+import ru.practicum.shareit.common.exception.ObjectNotFoundException;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -155,6 +157,34 @@ class BookingControllerTest {
 
     @Test
     @SneakyThrows
+    void getBookingByIdNotFound() {
+        Long bookingId = 200L;
+        when(bookingService.get(userId, bookingId))
+                .thenThrow(ObjectNotFoundException.class);
+        mvc.perform(get("/bookings/{bookingId}", bookingId)
+                        .header(USER_HEADER, userId))
+                .andExpect(status().isNotFound())
+                .andExpect(result ->
+                        assertInstanceOf(ObjectNotFoundException.class, result.getResolvedException()));
+    }
+
+    @Test
+    @SneakyThrows
+    void findAlBookingsUnsupportedStatus() {
+        int from = 0;
+        int size = 50;
+        mvc.perform(get("/bookings")
+                        .header(USER_HEADER, userId)
+                        .param("state", "hell")
+                        .param("from", String.valueOf(from))
+                        .param("size", String.valueOf(size)))
+                .andExpect(status().is5xxServerError())
+                .andExpect(result ->
+                        assertInstanceOf(MethodArgumentTypeMismatchException.class, result.getResolvedException()));
+    }
+
+    @Test
+    @SneakyThrows
     void findAlBookings() {
         BookingState state = BookingState.FUTURE;
         int from = 0;
@@ -180,6 +210,7 @@ class BookingControllerTest {
 
         verify(bookingService, times(1)).findAll(userId, state, from, size);
     }
+
 
     @Test
     @SneakyThrows
