@@ -35,7 +35,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 @AutoConfigureTestDatabase(connection = EmbeddedDatabaseConnection.H2)
 @Transactional
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
-class BookingServiceImplIntegrationTest {
+class BookingServiceIntegrationTest {
 
     @Autowired
     private BookingService bookingService;

@@ -55,7 +55,6 @@ class ItemRequestServiceTest {
                 .build();
         itemRequest = ItemRequest.builder()
                 .id(1L)
-                .items(Collections.emptyList())
                 .user(user)
                 .description("description")
                 .build();

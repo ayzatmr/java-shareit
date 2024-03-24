@@ -9,6 +9,7 @@ import ru.practicum.shareit.user.dto.Update;
 
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Positive;
 import javax.validation.constraints.Size;
 
 
@@ -30,5 +31,6 @@ public class NewItemDto {
     @NotNull(message = "available can not be null", groups = {Create.class})
     private Boolean available;
 
+    @Positive(message = "requestId should be grater than 0")
     private Long requestId;
 }

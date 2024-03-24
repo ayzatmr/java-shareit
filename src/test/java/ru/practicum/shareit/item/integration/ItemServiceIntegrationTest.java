@@ -49,7 +49,7 @@ class ItemServiceIntegrationTest {
 
     private User user2;
 
-    private NewItemDto itemDto;
+    private NewItemDto newItemDto;
 
     @BeforeAll
     void beforeAll() {
@@ -63,7 +63,7 @@ class ItemServiceIntegrationTest {
                         .name("Morti")
                         .email("morti@mail.com")
                         .build());
-        itemDto = NewItemDto.builder()
+        newItemDto = NewItemDto.builder()
                 .name("name")
                 .description("description")
                 .available(true)
@@ -77,16 +77,16 @@ class ItemServiceIntegrationTest {
 
     @Test
     void addNewItem() {
-        ItemDto savedItem = itemService.addNewItem(user.getId(), itemDto);
+        ItemDto savedItem = itemService.addNewItem(user.getId(), newItemDto);
         assertThat(savedItem.getId(), notNullValue());
-        assertThat(savedItem.getName(), is(itemDto.getName()));
-        assertThat(savedItem.getDescription(), is(itemDto.getDescription()));
-        assertThat(savedItem.getAvailable(), is(itemDto.getAvailable()));
+        assertThat(savedItem.getName(), is(newItemDto.getName()));
+        assertThat(savedItem.getDescription(), is(newItemDto.getDescription()));
+        assertThat(savedItem.getAvailable(), is(newItemDto.getAvailable()));
     }
 
     @Test
     void deleteItem() {
-        ItemDto savedItem = itemService.addNewItem(user.getId(), itemDto);
+        ItemDto savedItem = itemService.addNewItem(user.getId(), newItemDto);
         itemService.deleteItem(user.getId(), savedItem.getId());
         ObjectNotFoundException e = assertThrows(ObjectNotFoundException.class,
                 () -> itemService.get(savedItem.getId(), user.getId()));
@@ -109,7 +109,7 @@ class ItemServiceIntegrationTest {
 
     @Test
     void patchItem() {
-        ItemDto savedItem = itemService.addNewItem(user.getId(), itemDto);
+        ItemDto savedItem = itemService.addNewItem(user.getId(), newItemDto);
 
         NewItemDto itemUpdateDto = NewItemDto.builder()
                 .name("new name")
@@ -125,7 +125,7 @@ class ItemServiceIntegrationTest {
 
     @Test
     void getItemByOwner() {
-        ItemDto savedItem = itemService.addNewItem(user.getId(), itemDto);
+        ItemDto savedItem = itemService.addNewItem(user.getId(), newItemDto);
         ItemDto item = itemService.get(savedItem.getId(), user.getId());
 
         assertThat(item, notNullValue());
@@ -136,7 +136,7 @@ class ItemServiceIntegrationTest {
 
     @Test
     void getItemNotByOwner() {
-        ItemDto savedItem = itemService.addNewItem(user.getId(), itemDto);
+        ItemDto savedItem = itemService.addNewItem(user.getId(), newItemDto);
         ItemDto item = itemService.get(savedItem.getId(), user2.getId());
 
         assertThat(item.getComments(), emptyIterable());
@@ -147,7 +147,7 @@ class ItemServiceIntegrationTest {
     @Test
     void getItemsWithBookings() {
 
-        ItemDto savedItem = itemService.addNewItem(user.getId(), itemDto);
+        ItemDto savedItem = itemService.addNewItem(user.getId(), newItemDto);
         long itemId = savedItem.getId();
         NewBookingDto addBookingDto1 = NewBookingDto.builder()
                 .itemId(itemId)
@@ -167,13 +167,13 @@ class ItemServiceIntegrationTest {
 
     @Test
     void searchItems() {
-        ItemDto savedItem = itemService.addNewItem(user.getId(), itemDto);
+        ItemDto savedItem = itemService.addNewItem(user.getId(), newItemDto);
 
         List<ItemDto> items = itemService.search(savedItem.getName(), 0, 50);
 
         assertThat(items.size(), is(1));
-        assertThat(items.get(0).getName(), is(itemDto.getName()));
-        assertThat(items.get(0).getDescription(), is(itemDto.getDescription()));
+        assertThat(items.get(0).getName(), is(newItemDto.getName()));
+        assertThat(items.get(0).getDescription(), is(newItemDto.getDescription()));
     }
 
     @Test
@@ -184,7 +184,7 @@ class ItemServiceIntegrationTest {
 
     @Test
     void addCommentToItem() {
-        ItemDto savedItem = itemService.addNewItem(user.getId(), itemDto);
+        ItemDto savedItem = itemService.addNewItem(user.getId(), newItemDto);
         NewBookingDto addBookingDto1 = NewBookingDto.builder()
                 .itemId(savedItem.getId())
                 .start(LocalDateTime.now().minusDays(4))
@@ -204,7 +204,7 @@ class ItemServiceIntegrationTest {
 
     @Test
     void addCommentToItemWithoutBooking() {
-        ItemDto savedItem = itemService.addNewItem(user.getId(), itemDto);
+        ItemDto savedItem = itemService.addNewItem(user.getId(), newItemDto);
         NewCommentDto addCommentDto = new NewCommentDto("new comment");
         ValidationException e = assertThrows(ValidationException.class,
                 () -> itemService.addCommentToItem(user2.getId(), savedItem.getId(), addCommentDto));

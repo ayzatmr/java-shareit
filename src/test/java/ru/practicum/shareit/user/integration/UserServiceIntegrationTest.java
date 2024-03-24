@@ -34,7 +34,6 @@ class UserServiceIntegrationTest {
     @Test
     void addUser() {
         UserDto savedUser = userService.save(userDto);
-
         assertThat(savedUser.getId(), notNullValue());
         assertThat(savedUser.getName(), is(userDto.getName()));
         assertThat(savedUser.getEmail(), is(userDto.getEmail()));
@@ -68,7 +67,6 @@ class UserServiceIntegrationTest {
                 .email("monkey@email.com")
                 .build();
         UserDto updatedUser = userService.patch(newUserdto, savedUser.getId());
-
         assertThat(updatedUser.getId(), is(savedUser.getId()));
         assertThat(updatedUser.getName(), is(newUserdto.getName()));
         assertThat(updatedUser.getEmail(), is(newUserdto.getEmail()));
@@ -78,7 +76,6 @@ class UserServiceIntegrationTest {
     void findUserById() {
         UserDto savedUser = userService.save(userDto);
         UserDto foundUser = userService.get(savedUser.getId());
-
         assertThat(foundUser.getId(), is(savedUser.getId()));
         assertThat(foundUser.getName(), is(savedUser.getName()));
         assertThat(foundUser.getEmail(), is(savedUser.getEmail()));
@@ -88,14 +85,12 @@ class UserServiceIntegrationTest {
     void getAllUsers() {
         UserDto savedUser = userService.save(userDto);
         List<UserDto> users = userService.getAllUsers();
-
         assertThat(users, is(List.of(savedUser)));
     }
 
     @Test
     void deleteUserById() {
         UserDto savedUser = userService.save(userDto);
-
         userService.delete(savedUser.getId());
         List<UserDto> users = userService.getAllUsers();
         assertEquals(0, users.size());

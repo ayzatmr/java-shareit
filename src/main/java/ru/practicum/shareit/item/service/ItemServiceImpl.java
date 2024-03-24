@@ -19,6 +19,8 @@ import ru.practicum.shareit.item.model.Comment;
 import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.item.repository.CommentRepository;
 import ru.practicum.shareit.item.repository.ItemRepository;
+import ru.practicum.shareit.request.model.ItemRequest;
+import ru.practicum.shareit.request.repository.ItemRequestRepository;
 import ru.practicum.shareit.user.model.User;
 import ru.practicum.shareit.user.repository.UserRepository;
 
@@ -33,6 +35,7 @@ import java.util.stream.Collectors;
 public class ItemServiceImpl implements ItemService {
     private final ItemRepository itemRepository;
     private final UserRepository userRepository;
+    private final ItemRequestRepository itemRequestRepository;
     private final BookingRepository bookingRepository;
     private final CommentRepository commentRepository;
     private final ItemMapper itemMapper;
@@ -61,10 +64,11 @@ public class ItemServiceImpl implements ItemService {
     }
 
     @Override
-    public ItemDto addNewItem(long userId, NewItemDto item) {
+    public ItemDto addNewItem(long userId, NewItemDto newItemDto) {
         User user = getUser(userId);
-        Item itemModel = itemMapper.toModel(item);
+        Item itemModel = itemMapper.toModel(newItemDto);
         itemModel.setOwner(user);
+        addRequestToItem(newItemDto, itemModel);
         Item newItem = itemRepository.save(itemModel);
         return itemMapper.toDto(newItem);
     }
@@ -183,4 +187,13 @@ public class ItemServiceImpl implements ItemService {
         return result;
     }
 
+    private void addRequestToItem(NewItemDto itemDto, Item item) {
+        Long requestId = itemDto.getRequestId();
+        if (requestId != null) {
+            ItemRequest itemRequest = itemRequestRepository.findById(requestId)
+                    .orElseThrow(() -> new ObjectNotFoundException("item request is not found"));
+            item.setRequest(itemRequest);
+            itemRequest.getItems().add(item);
+        }
+    }
 }

@@ -26,7 +26,7 @@ public class ItemRequest {
 
     @OneToMany(mappedBy = "request")
     @ToString.Exclude
-    private List<Item> items = new ArrayList<>();
+    private final List<Item> items = new ArrayList<>();
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id")

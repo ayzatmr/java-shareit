@@ -8,9 +8,11 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.test.util.ReflectionTestUtils;
 import ru.practicum.shareit.booking.model.Booking;
 import ru.practicum.shareit.booking.model.BookingStatus;
 import ru.practicum.shareit.booking.repository.BookingRepository;
+import ru.practicum.shareit.common.exception.ObjectNotFoundException;
 import ru.practicum.shareit.item.dto.CommentDto;
 import ru.practicum.shareit.item.dto.ItemDto;
 import ru.practicum.shareit.item.dto.NewCommentDto;
@@ -21,6 +23,8 @@ import ru.practicum.shareit.item.model.Comment;
 import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.item.repository.CommentRepository;
 import ru.practicum.shareit.item.repository.ItemRepository;
+import ru.practicum.shareit.request.model.ItemRequest;
+import ru.practicum.shareit.request.repository.ItemRequestRepository;
 import ru.practicum.shareit.user.model.User;
 import ru.practicum.shareit.user.repository.UserRepository;
 
@@ -30,6 +34,7 @@ import java.util.Optional;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -40,6 +45,9 @@ class ItemServiceImplTest {
     private ItemRepository itemRepository;
     @Mock
     private UserRepository userRepository;
+
+    @Mock
+    private ItemRequestRepository itemRequestRepository;
     @Mock
     private BookingRepository bookingRepository;
     @Mock
@@ -75,6 +83,7 @@ class ItemServiceImplTest {
                 .name("item")
                 .description("description")
                 .available(true)
+                .requestId(1L)
                 .build();
         itemDto = ItemDto.builder()
                 .id(1L)
@@ -115,11 +124,14 @@ class ItemServiceImplTest {
                 .thenReturn(item);
         when(itemMapper.toModel(newItemDto))
                 .thenReturn(item);
+        when(itemRequestRepository.findById(newItemDto.getRequestId()))
+                .thenReturn(Optional.of(new ItemRequest()));
 
         itemService.addNewItem(owner.getId(), newItemDto);
 
         verify(userRepository, times(1)).findById(owner.getId());
         verify(itemRepository, times(1)).save(item);
+        verify(itemRequestRepository, times(1)).findById(newItemDto.getRequestId());
     }
 
     @Test
@@ -203,5 +215,45 @@ class ItemServiceImplTest {
         verify(itemRepository, times(1)).findById(item.getId());
         verify(bookingRepository, times(1)).findAllByItemIdAndBooker(item.getId(), user.getId());
         verify(commentRepository, times(1)).save(any());
+    }
+
+    @Test
+    void addRequestToItemNotFound() {
+        ItemRequest itemRequest = ItemRequest.builder()
+                .id(1L)
+                .description("description")
+                .user(user)
+                .build();
+        Item newItem = Item.builder()
+                .name("name")
+                .description("description")
+                .available(true)
+                .request(itemRequest)
+                .build();
+        when(itemRequestRepository.findById(1L))
+                .thenThrow(ObjectNotFoundException.class);
+        assertThrows(ObjectNotFoundException.class,
+                () -> ReflectionTestUtils.invokeMethod(itemService, "addRequestToItem", newItemDto, newItem));
+        verify(itemRequestRepository, times(1)).findById(1L);
+
+    }
+
+    @Test
+    void addRequestToItem() {
+        ItemRequest itemRequest = ItemRequest.builder()
+                .id(1L)
+                .description("description")
+                .user(user)
+                .build();
+        Item newItem = Item.builder()
+                .name("name")
+                .description("description")
+                .available(true)
+                .request(itemRequest)
+                .build();
+        when(itemRequestRepository.findById(1L))
+                .thenReturn(Optional.of(itemRequest));
+        ReflectionTestUtils.invokeMethod(itemService, "addRequestToItem", newItemDto, newItem);
+        verify(itemRequestRepository, times(1)).findById(1L);
     }
 }
