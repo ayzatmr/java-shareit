@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.jdbc.EmbeddedDatabaseConnection;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.context.SpringBootTest;
+import ru.practicum.shareit.common.exception.ObjectNotFoundException;
 import ru.practicum.shareit.request.dto.ItemRequestDto;
 import ru.practicum.shareit.request.dto.NewItemRequestDto;
 import ru.practicum.shareit.request.service.ItemRequestService;
@@ -20,6 +21,7 @@ import java.util.List;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.*;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.NONE)
 @AutoConfigureTestDatabase(connection = EmbeddedDatabaseConnection.H2)
@@ -83,5 +85,18 @@ class ItemRequestServiceIntegrationTest {
         ItemRequestDto savedRequest = itemRequestService.create(user.getId(), newItemRequestDto);
         ItemRequestDto request = itemRequestService.get(user.getId(), savedRequest.getId());
         assertThat(request, is(savedRequest));
+    }
+
+    @Test
+    void getItemRequestNotFound() {
+        assertThrows(ObjectNotFoundException.class,
+                () -> itemRequestService.get(user.getId(), 100L));
+    }
+
+    @Test
+    void getItemRequestUserNotFound() {
+        ItemRequestDto savedRequest = itemRequestService.create(user.getId(), newItemRequestDto);
+        assertThrows(ObjectNotFoundException.class,
+                () -> itemRequestService.get(100L, savedRequest.getId()));
     }
 }

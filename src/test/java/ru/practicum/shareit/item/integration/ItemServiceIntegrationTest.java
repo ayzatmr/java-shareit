@@ -11,6 +11,8 @@ import org.springframework.boot.test.context.SpringBootTest;
 import ru.practicum.shareit.booking.dto.BookingDto;
 import ru.practicum.shareit.booking.dto.NewBookingDto;
 import ru.practicum.shareit.booking.service.BookingService;
+import ru.practicum.shareit.common.exception.ObjectNotFoundException;
+import ru.practicum.shareit.common.exception.ValidationException;
 import ru.practicum.shareit.item.dto.CommentDto;
 import ru.practicum.shareit.item.dto.ItemDto;
 import ru.practicum.shareit.item.dto.NewCommentDto;
@@ -26,6 +28,7 @@ import java.util.List;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.*;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.NONE)
 @AutoConfigureTestDatabase(connection = EmbeddedDatabaseConnection.H2)
@@ -79,6 +82,29 @@ class ItemServiceIntegrationTest {
         assertThat(savedItem.getName(), is(itemDto.getName()));
         assertThat(savedItem.getDescription(), is(itemDto.getDescription()));
         assertThat(savedItem.getAvailable(), is(itemDto.getAvailable()));
+    }
+
+    @Test
+    void deleteItem() {
+        ItemDto savedItem = itemService.addNewItem(user.getId(), itemDto);
+        itemService.deleteItem(user.getId(), savedItem.getId());
+        ObjectNotFoundException e = assertThrows(ObjectNotFoundException.class,
+                () -> itemService.get(savedItem.getId(), user.getId()));
+        assertThat(e.getMessage(), is("item is not found"));
+    }
+
+    @Test
+    void deleteUserNotFound() {
+        ObjectNotFoundException e = assertThrows(ObjectNotFoundException.class,
+                () -> itemService.deleteItem(200L, user2.getId()));
+        assertThat(e.getMessage(), is("User is not found"));
+    }
+
+    @Test
+    void getItemByIdNotFound() {
+        ObjectNotFoundException e = assertThrows(ObjectNotFoundException.class,
+                () -> itemService.get(200L, user2.getId()));
+        assertThat(e.getMessage(), is("item is not found"));
     }
 
     @Test
@@ -151,6 +177,12 @@ class ItemServiceIntegrationTest {
     }
 
     @Test
+    void searchItemsNotFound() {
+        List<ItemDto> items = itemService.search("", 0, 50);
+        assertThat(items.size(), is(0));
+    }
+
+    @Test
     void addCommentToItem() {
         ItemDto savedItem = itemService.addNewItem(user.getId(), itemDto);
         NewBookingDto addBookingDto1 = NewBookingDto.builder()
@@ -168,5 +200,15 @@ class ItemServiceIntegrationTest {
         assertThat(commentDto.getAuthorName(), is(user2.getName()));
         assertThat(commentDto.getText(), is(addCommentDto.getText()));
         assertThat(commentDto.getCreated(), lessThan(LocalDateTime.now()));
+    }
+
+    @Test
+    void addCommentToItemWithoutBooking() {
+        ItemDto savedItem = itemService.addNewItem(user.getId(), itemDto);
+        NewCommentDto addCommentDto = new NewCommentDto("new comment");
+        ValidationException e = assertThrows(ValidationException.class,
+                () -> itemService.addCommentToItem(user2.getId(), savedItem.getId(), addCommentDto));
+        assertThat(e.getMessage(), is("You can not not leave comment on that item"));
+
     }
 }

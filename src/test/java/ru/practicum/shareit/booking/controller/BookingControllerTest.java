@@ -9,6 +9,7 @@ import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.bind.MissingRequestHeaderException;
 import ru.practicum.shareit.booking.BookingController;
 import ru.practicum.shareit.booking.dto.BookingDto;
 import ru.practicum.shareit.booking.dto.NewBookingDto;
@@ -18,12 +19,12 @@ import ru.practicum.shareit.booking.service.BookingService;
 import java.time.LocalDateTime;
 import java.util.List;
 
+import static org.hamcrest.Matchers.is;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.mockito.Mockito.*;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 import static ru.practicum.shareit.common.model.Constants.USER_HEADER;
 
 @WebMvcTest(controllers = BookingController.class)
@@ -38,7 +39,7 @@ class BookingControllerTest {
     @Autowired
     private ObjectMapper objectMapper;
 
-    private long userId;
+    private static final long userId = 1;
 
     private NewBookingDto newBookingDto;
 
@@ -46,8 +47,7 @@ class BookingControllerTest {
 
 
     @BeforeEach
-    void setUp() {
-        userId = 1;
+    void beforeEach() {
         newBookingDto = NewBookingDto.builder()
                 .itemId(1L)
                 .start(LocalDateTime.now().plusDays(1))
@@ -69,7 +69,13 @@ class BookingControllerTest {
                         .content(objectMapper.writeValueAsString(newBookingDto)))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(APPLICATION_JSON))
-                .andExpect(content().string(objectMapper.writeValueAsString(bookingDto)));
+                .andExpect(content().string(objectMapper.writeValueAsString(bookingDto)))
+                .andExpect(jsonPath("$.id", is(bookingDto.getId())))
+                .andExpect(jsonPath("$.item", is(bookingDto.getItem())))
+                .andExpect(jsonPath("$.booker", is(bookingDto.getBooker())))
+                .andExpect(jsonPath("$.status", is(bookingDto.getStatus())))
+                .andExpect(jsonPath("$.start", is(bookingDto.getStart())))
+                .andExpect(jsonPath("$.end", is(bookingDto.getEnd())));
 
         verify(bookingService, times(1)).create(userId, newBookingDto);
     }
@@ -90,6 +96,19 @@ class BookingControllerTest {
 
     @Test
     @SneakyThrows
+    void addNewBookingWithoutHeader() {
+
+        mvc.perform(post("/bookings")
+                        .contentType(APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(newBookingDto)))
+                .andExpect(status().is5xxServerError())
+                .andExpect(result -> assertInstanceOf(MissingRequestHeaderException.class, result.getResolvedException()));
+
+        verify(bookingService, never()).create(any(), any());
+    }
+
+    @Test
+    @SneakyThrows
     void updateBooking() {
         Long bookingId = 2L;
         Boolean approved = true;
@@ -101,7 +120,13 @@ class BookingControllerTest {
                         .param("approved", approved.toString()))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(APPLICATION_JSON))
-                .andExpect(content().string(objectMapper.writeValueAsString(bookingDto)));
+                .andExpect(content().string(objectMapper.writeValueAsString(bookingDto)))
+                .andExpect(jsonPath("$.id", is(bookingDto.getId())))
+                .andExpect(jsonPath("$.item", is(bookingDto.getItem())))
+                .andExpect(jsonPath("$.booker", is(bookingDto.getBooker())))
+                .andExpect(jsonPath("$.status", is(bookingDto.getStatus())))
+                .andExpect(jsonPath("$.start", is(bookingDto.getStart())))
+                .andExpect(jsonPath("$.end", is(bookingDto.getEnd())));
 
         verify(bookingService, times(1)).patch(userId, bookingId, approved);
     }
@@ -117,7 +142,13 @@ class BookingControllerTest {
                         .header(USER_HEADER, userId))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(APPLICATION_JSON))
-                .andExpect(content().string(objectMapper.writeValueAsString(bookingDto)));
+                .andExpect(content().string(objectMapper.writeValueAsString(bookingDto)))
+                .andExpect(jsonPath("$.id", is(bookingDto.getId())))
+                .andExpect(jsonPath("$.item", is(bookingDto.getItem())))
+                .andExpect(jsonPath("$.booker", is(bookingDto.getBooker())))
+                .andExpect(jsonPath("$.status", is(bookingDto.getStatus())))
+                .andExpect(jsonPath("$.start", is(bookingDto.getStart())))
+                .andExpect(jsonPath("$.end", is(bookingDto.getEnd())));
 
         verify(bookingService, times(1)).get(userId, bookingId);
     }
@@ -138,7 +169,14 @@ class BookingControllerTest {
                         .param("size", String.valueOf(size)))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(APPLICATION_JSON))
-                .andExpect(content().string(objectMapper.writeValueAsString(List.of(bookingDto))));
+                .andExpect(content().string(objectMapper.writeValueAsString(List.of(bookingDto))))
+                .andExpect(jsonPath("$.length()", is(1)))
+                .andExpect(jsonPath("$.[0].id", is(bookingDto.getId())))
+                .andExpect(jsonPath("$.[0].item", is(bookingDto.getItem())))
+                .andExpect(jsonPath("$.[0].booker", is(bookingDto.getBooker())))
+                .andExpect(jsonPath("$.[0].status", is(bookingDto.getStatus())))
+                .andExpect(jsonPath("$.[0].start", is(bookingDto.getStart())))
+                .andExpect(jsonPath("$.[0].end", is(bookingDto.getEnd())));
 
         verify(bookingService, times(1)).findAll(userId, state, from, size);
     }
@@ -159,7 +197,14 @@ class BookingControllerTest {
                         .param("size", String.valueOf(size)))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(APPLICATION_JSON))
-                .andExpect(content().string(objectMapper.writeValueAsString(List.of(bookingDto))));
+                .andExpect(content().string(objectMapper.writeValueAsString(List.of(bookingDto))))
+                .andExpect(jsonPath("$.length()", is(1)))
+                .andExpect(jsonPath("$.[0].id", is(bookingDto.getId())))
+                .andExpect(jsonPath("$.[0].item", is(bookingDto.getItem())))
+                .andExpect(jsonPath("$.[0].booker", is(bookingDto.getBooker())))
+                .andExpect(jsonPath("$.[0].status", is(bookingDto.getStatus())))
+                .andExpect(jsonPath("$.[0].start", is(bookingDto.getStart())))
+                .andExpect(jsonPath("$.[0].end", is(bookingDto.getEnd())));
 
         verify(bookingService, times(1)).findAllOwnerBookings(userId, state, from, size);
     }

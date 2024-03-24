@@ -19,7 +19,6 @@ import ru.practicum.shareit.user.repository.UserRepository;
 
 import javax.transaction.Transactional;
 import java.time.LocalDateTime;
-import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
@@ -44,22 +43,22 @@ class BookingRepositoryTest {
     @Autowired
     private UserRepository userRepository;
     private Item item;
-    private User user;
-    private User user2;
+    private User owner;
+    private User booker;
     private Booking pastBooking;
     private Booking futureBooking;
     private Booking currentBooking;
 
     @BeforeEach
     void beforeEach() {
-        user = userRepository.save(
+        owner = userRepository.save(
                 User.builder()
-                        .name("user")
+                        .name("owner")
                         .email("albert@email.com")
                         .build());
-        user2 = userRepository.save(
+        booker = userRepository.save(
                 User.builder()
-                        .name("user2")
+                        .name("booker")
                         .email("sivester@email.com")
                         .build());
         item = itemRepository.save(
@@ -67,15 +66,15 @@ class BookingRepositoryTest {
                         .name("item")
                         .description("description")
                         .available(true)
-                        .owner(user)
+                        .owner(owner)
                         .build());
         pastBooking = bookingRepository.save(
                 Booking.builder()
-                        .status(BookingStatus.WAITING)
+                        .status(BookingStatus.APPROVED)
                         .start(LocalDateTime.now().minusDays(1))
                         .end(LocalDateTime.now().minusDays(4))
                         .item(item)
-                        .booker(user2)
+                        .booker(booker)
                         .build());
         currentBooking = bookingRepository.save(
                 Booking.builder()
@@ -83,7 +82,7 @@ class BookingRepositoryTest {
                         .start(LocalDateTime.now().minusDays(1))
                         .end(LocalDateTime.now().plusDays(4))
                         .item(item)
-                        .booker(user2)
+                        .booker(booker)
                         .build());
         futureBooking = bookingRepository.save(
                 Booking.builder()
@@ -91,7 +90,7 @@ class BookingRepositoryTest {
                         .start(LocalDateTime.now().plusDays(1))
                         .end(LocalDateTime.now().plusDays(4))
                         .item(item)
-                        .booker(user2)
+                        .booker(booker)
                         .build());
     }
 
@@ -105,7 +104,6 @@ class BookingRepositoryTest {
     @Test
     void getByBookingId() {
         Booking newBooking = bookingRepository.getByBookingId(pastBooking.getId()).get();
-
         assertThat(newBooking.getId(), is(pastBooking.getId()));
         assertThat(newBooking.getStatus(), is(pastBooking.getStatus()));
     }
@@ -118,75 +116,74 @@ class BookingRepositoryTest {
 
     @Test
     void findAllByItemIdAndBooker() {
-        List<Booking> bookings = bookingRepository.findAllByItemIdAndBooker(item.getId(), user2.getId());
-        assertThat(bookings, is(Collections.EMPTY_LIST));
+        List<Booking> bookings = bookingRepository.findAllByItemIdAndBooker(item.getId(), booker.getId());
+        assertThat(bookings, is(List.of(pastBooking)));
     }
 
     @Test
     void findAllByItemIdIn() {
         List<Booking> bookings = bookingRepository.findAllByItemIdIn(List.of(item.getId()), BookingStatus.WAITING);
-        assertThat(bookings, is(List.of(pastBooking, currentBooking, futureBooking)));
+        assertThat(bookings, is(List.of(currentBooking, futureBooking)));
     }
 
     @Test
     void findAllByItemOwnerId() {
-        List<Booking> bookings = bookingRepository.findAllByItemOwnerId(user.getId(), pageRequest);
+        List<Booking> bookings = bookingRepository.findAllByItemOwnerId(owner.getId(), pageRequest);
         assertThat(bookings, is(List.of(futureBooking, currentBooking, pastBooking)));
     }
 
 
     @Test
     void findCurrentByOwnerId() {
-        List<Booking> bookings = bookingRepository.findCurrentByOwnerId(user.getId(), now(), now(), pageRequest);
+        List<Booking> bookings = bookingRepository.findCurrentByOwnerId(owner.getId(), now(), now(), pageRequest);
         assertThat(bookings, is(List.of(currentBooking)));
     }
 
-
     @Test
     void findPastByOwnerId() {
-        List<Booking> bookings = bookingRepository.findPastByOwnerId(user.getId(), now(), pageRequest);
+        List<Booking> bookings = bookingRepository.findPastByOwnerId(owner.getId(), now(), pageRequest);
         assertThat(bookings, is(List.of(pastBooking)));
     }
 
     @Test
     void findFutureByOwnerId() {
-        List<Booking> bookings = bookingRepository.findFutureByOwnerId(user.getId(), now(), pageRequest);
+        List<Booking> bookings = bookingRepository.findFutureByOwnerId(owner.getId(), now(), pageRequest);
         assertThat(bookings, is(List.of(futureBooking)));
     }
 
     @Test
     void finByOwnerAndStatus() {
-        List<Booking> bookings = bookingRepository.finByOwnerAndStatus(user.getId(), BookingStatus.WAITING, pageRequest);
-        assertEquals(bookings, List.of(futureBooking, currentBooking, pastBooking));
+        List<Booking> bookings = bookingRepository.finByOwnerAndStatus(owner.getId(), BookingStatus.WAITING, pageRequest);
+        assertEquals(bookings, List.of(futureBooking, currentBooking));
     }
 
     @Test
     void findAllByBooker() {
-        List<Booking> bookings = bookingRepository.findAllByBooker(user2.getId(), pageRequest);
+        List<Booking> bookings = bookingRepository.findAllByBooker(booker.getId(), pageRequest);
         assertEquals(bookings, List.of(futureBooking, currentBooking, pastBooking));
     }
 
     @Test
     void findCurrentByBooker() {
-        List<Booking> bookings = bookingRepository.findCurrentByBooker(user2.getId(), now(), now(), pageRequest);
+        List<Booking> bookings = bookingRepository.findCurrentByBooker(booker.getId(), now(), now(), pageRequest);
         assertEquals(bookings, List.of(currentBooking));
     }
 
     @Test
     void findPastByBooker() {
-        List<Booking> bookings = bookingRepository.findPastByBooker(user2.getId(), now(), pageRequest);
+        List<Booking> bookings = bookingRepository.findPastByBooker(booker.getId(), now(), pageRequest);
         assertThat(bookings, is(List.of(pastBooking)));
     }
 
     @Test
     void findFutureByBooker() {
-        List<Booking> bookings = bookingRepository.findFutureByBooker(user2.getId(), now(), pageRequest);
+        List<Booking> bookings = bookingRepository.findFutureByBooker(booker.getId(), now(), pageRequest);
         assertThat(bookings, is(List.of(futureBooking)));
     }
 
     @Test
     void findByBookerAndStatus() {
-        List<Booking> bookings = bookingRepository.findByBookerAndStatus(user2.getId(), BookingStatus.WAITING, pageRequest);
-        assertThat(bookings, is(List.of(futureBooking, currentBooking, pastBooking)));
+        List<Booking> bookings = bookingRepository.findByBookerAndStatus(booker.getId(), BookingStatus.WAITING, pageRequest);
+        assertThat(bookings, is(List.of(futureBooking, currentBooking)));
     }
 }

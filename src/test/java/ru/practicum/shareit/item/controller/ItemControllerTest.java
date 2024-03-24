@@ -2,7 +2,6 @@ package ru.practicum.shareit.item.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.SneakyThrows;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
@@ -26,31 +25,24 @@ import static ru.practicum.shareit.common.model.Constants.USER_HEADER;
 
 @WebMvcTest(controllers = ItemController.class)
 class ItemControllerTest {
-
-    private static final long userId = 1;
-    private final ItemDto itemDto = ItemDto.builder()
-            .id(1L)
-            .name("name")
-            .available(true)
-            .description("description")
-            .build();
     @MockBean
     private ItemService itemService;
     @Autowired
     private MockMvc mvc;
     @Autowired
     private ObjectMapper objectMapper;
-    private NewItemDto newItemDto;
-
-    @BeforeEach
-    void beforeEach() {
-        newItemDto = NewItemDto.builder()
-                .id(1L)
-                .name("name")
-                .available(true)
-                .description("description")
-                .build();
-    }
+    private static final long userId = 1;
+    private final ItemDto itemDto = ItemDto.builder()
+            .id(1L)
+            .name("name")
+            .description("description")
+            .available(true)
+            .build();
+    private final NewItemDto newItemDto = NewItemDto.builder()
+            .id(1L)
+            .name("name")
+            .available(true)
+            .description("description").build();
 
     @Test
     @SneakyThrows
@@ -65,8 +57,10 @@ class ItemControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                 .andExpect(content().string(objectMapper.writeValueAsString(itemDto)))
-                .andExpect(jsonPath("$.name", is(newItemDto.getName())))
-                .andExpect(jsonPath("$.available", is(newItemDto.getAvailable())));
+                .andExpect(jsonPath("$.id", is(itemDto.getId().intValue())))
+                .andExpect(jsonPath("$.name", is(itemDto.getName())))
+                .andExpect(jsonPath("$.description", is(itemDto.getDescription())))
+                .andExpect(jsonPath("$.available", is(itemDto.getAvailable())));
 
         verify(itemService, times(1)).addNewItem(userId, newItemDto);
     }
@@ -77,16 +71,17 @@ class ItemControllerTest {
         when(itemService.patchItem(userId, newItemDto, newItemDto.getId()))
                 .thenReturn(itemDto);
 
-        mvc.perform(
-                        patch("/items/{itemId}", newItemDto.getId())
+        mvc.perform(patch("/items/{itemId}", newItemDto.getId())
                                 .header(USER_HEADER, userId)
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(objectMapper.writeValueAsString(newItemDto)))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                 .andExpect(content().string(objectMapper.writeValueAsString(itemDto)))
-                .andExpect(jsonPath("$.name", is(newItemDto.getName())))
-                .andExpect(jsonPath("$.available", is(newItemDto.getAvailable())));
+                .andExpect(jsonPath("$.id", is(itemDto.getId().intValue())))
+                .andExpect(jsonPath("$.name", is(itemDto.getName())))
+                .andExpect(jsonPath("$.description", is(itemDto.getDescription())))
+                .andExpect(jsonPath("$.available", is(itemDto.getAvailable())));
 
         verify(itemService, times(1)).patchItem(userId, newItemDto, newItemDto.getId());
     }
@@ -102,10 +97,23 @@ class ItemControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                 .andExpect(content().string(objectMapper.writeValueAsString(itemDto)))
+                .andExpect(jsonPath("$.id", is(itemDto.getId().intValue())))
                 .andExpect(jsonPath("$.name", is(itemDto.getName())))
+                .andExpect(jsonPath("$.description", is(itemDto.getDescription())))
                 .andExpect(jsonPath("$.available", is(itemDto.getAvailable())));
 
         verify(itemService, times(1)).get(userId, itemDto.getId());
+    }
+
+    @Test
+    @SneakyThrows
+    void deleteItemById() {
+        doAnswer(invocation -> null).when(itemService).deleteItem(userId, itemDto.getId());
+        mvc.perform(delete("/items/{itemId}", itemDto.getId())
+                        .header(USER_HEADER, userId))
+                .andExpect(status().isOk());
+
+        verify(itemService, times(1)).deleteItem(userId, itemDto.getId());
     }
 
     @Test
@@ -119,7 +127,9 @@ class ItemControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                 .andExpect(content().string(objectMapper.writeValueAsString(List.of(itemDto))))
+                .andExpect(jsonPath("$.[0].id", is(itemDto.getId().intValue())))
                 .andExpect(jsonPath("$.[0].name", is(itemDto.getName())))
+                .andExpect(jsonPath("$.[0].description", is(itemDto.getDescription())))
                 .andExpect(jsonPath("$.[0].available", is(itemDto.getAvailable())));
 
         verify(itemService, times(1)).getItems(userId, 0, 50);
@@ -134,12 +144,14 @@ class ItemControllerTest {
 
         mvc.perform(get("/items/search")
                         .header(USER_HEADER, userId)
-                        .param("text", itemDto.getName()))
+                        .param("text", newItemDto.getName()))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                 .andExpect(content().string(objectMapper.writeValueAsString(List.of(itemDto))))
-                .andExpect(jsonPath("$.[0].name", is(newItemDto.getName())))
-                .andExpect(jsonPath("$.[0].available", is(newItemDto.getAvailable())));
+                .andExpect(jsonPath("$.[0].id", is(itemDto.getId().intValue())))
+                .andExpect(jsonPath("$.[0].name", is(itemDto.getName())))
+                .andExpect(jsonPath("$.[0].description", is(itemDto.getDescription())))
+                .andExpect(jsonPath("$.[0].available", is(itemDto.getAvailable())));
 
         verify(itemService, times(1)).search(itemDto.getName(), 0, 50);
     }

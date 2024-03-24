@@ -6,6 +6,8 @@ import org.springframework.boot.jdbc.EmbeddedDatabaseConnection;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.annotation.DirtiesContext;
+import ru.practicum.shareit.common.exception.AlreadyExistException;
+import ru.practicum.shareit.common.exception.ObjectNotFoundException;
 import ru.practicum.shareit.user.dto.UserDto;
 import ru.practicum.shareit.user.service.UserService;
 
@@ -15,6 +17,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.NONE)
 @AutoConfigureTestDatabase(connection = EmbeddedDatabaseConnection.H2)
@@ -38,13 +41,37 @@ class UserServiceIntegrationTest {
     }
 
     @Test
+    void updateUserWithSameEmail() {
+        UserDto user = userService.save(userDto);
+        UserDto newUserdto = UserDto.builder()
+                .name("hey")
+                .email("make@email.com")
+                .build();
+        userService.save(newUserdto);
+        AlreadyExistException e = assertThrows(AlreadyExistException.class,
+                () -> userService.patch(newUserdto, user.getId()));
+        assertThat(e.getMessage(), is("email should be unique"));
+    }
+
+    @Test
+    void updateUserNotFound() {
+        ObjectNotFoundException e = assertThrows(ObjectNotFoundException.class,
+                () -> userService.patch(userDto, 100L));
+        assertThat(e.getMessage(), is("user is not found"));
+    }
+
+    @Test
     void updateUser() {
         UserDto savedUser = userService.save(userDto);
-        UserDto updatedUser = userService.patch(userDto, savedUser.getId());
+        UserDto newUserdto = UserDto.builder()
+                .name("holland")
+                .email("monkey@email.com")
+                .build();
+        UserDto updatedUser = userService.patch(newUserdto, savedUser.getId());
 
         assertThat(updatedUser.getId(), is(savedUser.getId()));
-        assertThat(updatedUser.getName(), is(userDto.getName()));
-        assertThat(updatedUser.getEmail(), is(userDto.getEmail()));
+        assertThat(updatedUser.getName(), is(newUserdto.getName()));
+        assertThat(updatedUser.getEmail(), is(newUserdto.getEmail()));
     }
 
     @Test

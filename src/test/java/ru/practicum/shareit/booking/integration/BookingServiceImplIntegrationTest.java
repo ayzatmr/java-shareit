@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.jdbc.EmbeddedDatabaseConnection;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.util.ReflectionTestUtils;
 import ru.practicum.shareit.booking.dto.BookingDto;
 import ru.practicum.shareit.booking.dto.NewBookingDto;
 import ru.practicum.shareit.booking.model.BookingState;
@@ -122,10 +123,73 @@ class BookingServiceImplIntegrationTest {
     }
 
     @Test
+    void addBookingOnNotExistingItem() {
+        ObjectNotFoundException e = assertThrows(ObjectNotFoundException.class,
+                () -> bookingService.create(owner.getId(), NewBookingDto.builder().itemId(100L).build()));
+        assertThat(e.getMessage(), is("Item is not found"));
+    }
+
+    @Test
+    void addBookingWhenOwnerTryToBookHisOwnItem() {
+        assertThrows(ObjectNotFoundException.class,
+                () -> bookingService.create(owner.getId(), currentBookingDto));
+    }
+
+    @Test
+    void validateBookingEndDateIsMoreThanStartDate() {
+        NewBookingDto bookingDto = NewBookingDto.builder()
+                .itemId(item.getId())
+                .start(LocalDateTime.now().plusDays(5))
+                .end(LocalDateTime.now().plusDays(1))
+                .build();
+        ValidationException e = assertThrows(ValidationException.class,
+                () -> ReflectionTestUtils.invokeMethod(bookingService, "isBookingValid", item, bookingDto));
+        assertThat(e.getMessage(), is("Booking is not valid"));
+    }
+
+    @Test
+    void validateBookingDateEndDateIsEqualStartDate() {
+        LocalDateTime dateTime = LocalDateTime.now();
+        NewBookingDto bookingDto = NewBookingDto.builder()
+                .itemId(item.getId())
+                .start(dateTime)
+                .end(dateTime)
+                .build();
+        ValidationException e = assertThrows(ValidationException.class,
+                () -> ReflectionTestUtils.invokeMethod(bookingService, "isBookingValid", item, bookingDto));
+        assertThat(e.getMessage(), is("Booking is not valid"));
+    }
+
+    @Test
+    void validateBookingItemAvailable() {
+        Item item = Item.builder()
+                .id(200L)
+                .available(false)
+                .build();
+        NewBookingDto bookingDto = NewBookingDto.builder()
+                .itemId(item.getId())
+                .start(LocalDateTime.now().plusDays(1))
+                .end(LocalDateTime.now().plusDays(4))
+                .build();
+        ValidationException e = assertThrows(ValidationException.class,
+                () -> ReflectionTestUtils.invokeMethod(bookingService, "isBookingValid", item, bookingDto));
+        assertThat(e.getMessage(), is("Item is not available"));
+    }
+
+    @Test
     void changeBookingStatus() {
         BookingDto addedBooking = bookingService.create(booker.getId(), currentBookingDto);
         BookingDto bookingDto = bookingService.patch(owner.getId(), addedBooking.getId(), true);
+        assertThat(bookingDto.getId(), is(addedBooking.getId()));
         assertThat(bookingDto.getStatus(), is(BookingStatus.APPROVED));
+    }
+
+    @Test
+    void changeBookingStatusOfNotFoundBooking() {
+        ObjectNotFoundException e = assertThrows(ObjectNotFoundException.class,
+                () -> bookingService.patch(owner.getId(), 200L, true));
+        assertThat(e.getMessage(), is("Booking is not found"));
+
     }
 
     @Test
@@ -175,11 +239,60 @@ class BookingServiceImplIntegrationTest {
     }
 
     @Test
+    void findFutureBookingsByOwner() {
+        BookingDto addedBooking = bookingService.create(booker.getId(), futureBookingDto);
+        List<BookingDto> bookings = bookingService.findAllOwnerBookings(owner.getId(), BookingState.FUTURE, 0, 50);
+        assertThat(bookings, is(List.of(addedBooking)));
+    }
+
+    @Test
+    void findPastBookingsByOwner() {
+        BookingDto addedBooking = bookingService.create(booker.getId(), pastBookingDto);
+        List<BookingDto> bookings = bookingService.findAllOwnerBookings(owner.getId(), BookingState.PAST, 0, 50);
+        assertThat(bookings, is(List.of(addedBooking)));
+    }
+
+    @Test
+    void findCurrentBookingsByOwner() {
+        BookingDto addedBooking = bookingService.create(booker.getId(), currentBookingDto);
+        List<BookingDto> bookings = bookingService.findAllOwnerBookings(owner.getId(), BookingState.CURRENT, 0, 50);
+        assertThat(bookings, is(List.of(addedBooking)));
+    }
+
+    @Test
+    void findWaitingBookingsByOwner() {
+        BookingDto addedBooking = bookingService.create(booker.getId(), currentBookingDto);
+        List<BookingDto> bookings = bookingService.findAllOwnerBookings(owner.getId(), BookingState.WAITING, 0, 50);
+        assertThat(bookings, is(List.of(addedBooking)));
+    }
+
+    @Test
+    void findRejectedBookingsByOwner() {
+        BookingDto addedBooking = bookingService.create(booker.getId(), futureBookingDto);
+        BookingDto rejectedBooking = bookingService.patch(owner.getId(), addedBooking.getId(), false);
+        List<BookingDto> bookings = bookingService.findAllOwnerBookings(owner.getId(), BookingState.REJECTED, 0, 50);
+        assertThat(bookings, is(List.of(rejectedBooking)));
+    }
+
+    @Test
+    void findAllBookingsByBooker() {
+        BookingDto addedBooking = bookingService.create(booker.getId(), pastBookingDto);
+        List<BookingDto> bookings = bookingService.findAll(booker.getId(), BookingState.ALL, 0, 50);
+        assertThat(bookings, is(List.of(addedBooking)));
+    }
+
+    @Test
+    void findCurrentBookingsByBooker() {
+        BookingDto addedBooking = bookingService.create(booker.getId(), currentBookingDto);
+        List<BookingDto> bookings = bookingService.findAll(booker.getId(), BookingState.CURRENT, 0, 50);
+        assertThat(bookings, is(List.of(addedBooking)));
+    }
+
+    @Test
     void findAllPastBookingsByBooker() {
-        BookingDto addedBooking3 = bookingService.create(booker.getId(), pastBookingDto);
+        BookingDto addedBooking = bookingService.create(booker.getId(), pastBookingDto);
         List<BookingDto> bookings = bookingService.findAll(booker.getId(), BookingState.PAST, 0, 50);
-        assertThat(bookings, notNullValue());
-        assertThat(bookings, is(List.of(addedBooking3)));
+        assertThat(bookings, is(List.of(addedBooking)));
     }
 
     @Test
