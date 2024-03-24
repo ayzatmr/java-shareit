@@ -32,17 +32,13 @@ import static ru.practicum.shareit.common.model.Constants.USER_HEADER;
 @WebMvcTest(controllers = BookingController.class)
 class BookingControllerTest {
 
+    private static final long userId = 1;
     @MockBean
     private BookingService bookingService;
-
     @Autowired
     private MockMvc mvc;
-
     @Autowired
     private ObjectMapper objectMapper;
-
-    private static final long userId = 1;
-
     private NewBookingDto newBookingDto;
 
     private BookingDto bookingDto;

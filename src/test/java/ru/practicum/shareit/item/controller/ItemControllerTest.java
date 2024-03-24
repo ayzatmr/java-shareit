@@ -25,12 +25,6 @@ import static ru.practicum.shareit.common.model.Constants.USER_HEADER;
 
 @WebMvcTest(controllers = ItemController.class)
 class ItemControllerTest {
-    @MockBean
-    private ItemService itemService;
-    @Autowired
-    private MockMvc mvc;
-    @Autowired
-    private ObjectMapper objectMapper;
     private static final long userId = 1;
     private final ItemDto itemDto = ItemDto.builder()
             .id(1L)
@@ -43,6 +37,12 @@ class ItemControllerTest {
             .name("name")
             .available(true)
             .description("description").build();
+    @MockBean
+    private ItemService itemService;
+    @Autowired
+    private MockMvc mvc;
+    @Autowired
+    private ObjectMapper objectMapper;
 
     @Test
     @SneakyThrows
@@ -72,9 +72,9 @@ class ItemControllerTest {
                 .thenReturn(itemDto);
 
         mvc.perform(patch("/items/{itemId}", newItemDto.getId())
-                                .header(USER_HEADER, userId)
-                                .contentType(MediaType.APPLICATION_JSON)
-                                .content(objectMapper.writeValueAsString(newItemDto)))
+                        .header(USER_HEADER, userId)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(newItemDto)))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                 .andExpect(content().string(objectMapper.writeValueAsString(itemDto)))

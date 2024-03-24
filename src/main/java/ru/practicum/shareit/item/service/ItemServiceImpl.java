@@ -1,14 +1,15 @@
 package ru.practicum.shareit.item.service;
 
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import ru.practicum.shareit.booking.model.Booking;
 import ru.practicum.shareit.booking.model.BookingStatus;
 import ru.practicum.shareit.booking.repository.BookingRepository;
 import ru.practicum.shareit.common.exception.ObjectNotFoundException;
 import ru.practicum.shareit.common.exception.ValidationException;
+import ru.practicum.shareit.common.pagination.CustomPageRequest;
 import ru.practicum.shareit.item.dto.CommentDto;
 import ru.practicum.shareit.item.dto.ItemDto;
 import ru.practicum.shareit.item.dto.NewCommentDto;
@@ -44,7 +45,7 @@ public class ItemServiceImpl implements ItemService {
     @Override
     public List<ItemDto> getItems(long userId, int from, int size) {
         getUser(userId);
-        Pageable pageRequest = PageRequest.of(from, size);
+        Pageable pageRequest = CustomPageRequest.of(from, size, Sort.unsorted());
         List<Item> items = itemRepository.findAllByOwnerIdOrderById(userId, pageRequest);
         return mergeBookingsAndComments(items);
     }
@@ -111,7 +112,7 @@ public class ItemServiceImpl implements ItemService {
         if (text.isBlank()) {
             return Collections.emptyList();
         }
-        Pageable pageRequest = PageRequest.of(from, size);
+        Pageable pageRequest = CustomPageRequest.of(from, size, Sort.unsorted());
         return itemRepository.findAllByNameOrDescription("%" + text.toLowerCase() + "%", pageRequest)
                 .stream()
                 .map(itemMapper::toDto)

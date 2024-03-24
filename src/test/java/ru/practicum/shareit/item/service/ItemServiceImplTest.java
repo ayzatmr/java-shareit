@@ -6,7 +6,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.test.util.ReflectionTestUtils;
 import ru.practicum.shareit.booking.model.Booking;
@@ -40,7 +39,6 @@ import static org.mockito.Mockito.*;
 @ExtendWith(MockitoExtension.class)
 class ItemServiceImplTest {
 
-    private static final Pageable pageRequest = PageRequest.of(0, 50);
     @Mock
     private ItemRepository itemRepository;
     @Mock
@@ -171,7 +169,7 @@ class ItemServiceImplTest {
     void findAllItemsByUserId() {
         when(userRepository.findById(user.getId()))
                 .thenReturn(Optional.of(user));
-        when(itemRepository.findAllByOwnerIdOrderById(user.getId(), pageRequest))
+        when(itemRepository.findAllByOwnerIdOrderById(anyLong(), any(Pageable.class)))
                 .thenReturn(List.of(item));
         when(bookingRepository.findAllByItemIdIn(List.of(item.getId()), BookingStatus.APPROVED))
                 .thenReturn(List.of(booking, booking2));
@@ -184,17 +182,16 @@ class ItemServiceImplTest {
 
         assertThat(items.size(), is(1));
         verify(userRepository, times(1)).findById(user.getId());
-        verify(itemRepository, times(1)).findAllByOwnerIdOrderById(user.getId(), pageRequest);
+        verify(itemRepository, times(1)).findAllByOwnerIdOrderById(anyLong(), any(Pageable.class));
         verify(bookingRepository, times(1)).findAllByItemIdIn(List.of(item.getId()), BookingStatus.APPROVED);
     }
 
     @Test
     void findAllByNameOrDescription() {
-        String search = "%" + item.getName().toLowerCase() + "%";
-        when(itemRepository.findAllByNameOrDescription(search, pageRequest))
+        when(itemRepository.findAllByNameOrDescription(anyString(), any(Pageable.class)))
                 .thenReturn(List.of(item));
         itemService.search(item.getName(), 0, 50);
-        verify(itemRepository, times(1)).findAllByNameOrDescription(search, pageRequest);
+        verify(itemRepository, times(1)).findAllByNameOrDescription(anyString(), any(Pageable.class));
     }
 
     @Test

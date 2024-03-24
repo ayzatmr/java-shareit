@@ -3,11 +3,11 @@ package ru.practicum.shareit.request.service;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import ru.practicum.shareit.common.exception.ObjectNotFoundException;
+import ru.practicum.shareit.common.pagination.CustomPageRequest;
 import ru.practicum.shareit.request.dto.ItemRequestDto;
 import ru.practicum.shareit.request.dto.NewItemRequestDto;
 import ru.practicum.shareit.request.mapper.ItemRequestMapper;
@@ -47,7 +47,7 @@ public class ItemRequestServiceImpl implements ItemRequestService {
     @Override
     public List<ItemRequestDto> getAvailableItemRequests(Long userId, int from, int size) {
         getUser(userId);
-        Pageable pageRequest = PageRequest.of(from, size, REQUEST_SORTING);
+        Pageable pageRequest = CustomPageRequest.of(from, size, REQUEST_SORTING);
         Page<ItemRequest> requests = itemRequestRepository.findAvailableRequests(userId, pageRequest);
         return itemRequestMapper.toDtoList(requests.getContent());
     }

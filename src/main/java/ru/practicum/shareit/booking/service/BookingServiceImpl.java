@@ -1,7 +1,6 @@
 package ru.practicum.shareit.booking.service;
 
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
@@ -14,6 +13,7 @@ import ru.practicum.shareit.booking.model.BookingStatus;
 import ru.practicum.shareit.booking.repository.BookingRepository;
 import ru.practicum.shareit.common.exception.ObjectNotFoundException;
 import ru.practicum.shareit.common.exception.ValidationException;
+import ru.practicum.shareit.common.pagination.CustomPageRequest;
 import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.item.repository.ItemRepository;
 import ru.practicum.shareit.user.model.User;
@@ -22,7 +22,6 @@ import ru.practicum.shareit.user.repository.UserRepository;
 import javax.transaction.Transactional;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -77,11 +76,8 @@ public class BookingServiceImpl implements BookingService {
     @Override
     public List<BookingDto> findAll(Long userId, BookingState state, int from, int size) {
         getUser(userId);
-        Pageable pageRequest = PageRequest.of(from, size, BOOKINGS_SORTING);
+        Pageable pageRequest = CustomPageRequest.of(from, size, BOOKINGS_SORTING);
         List<Booking> bookings = getByBooker(state, userId, pageRequest);
-        if (bookings == null) {
-            return Collections.emptyList();
-        }
         return bookingMapper.toDtoList(bookings);
     }
 
@@ -99,7 +95,7 @@ public class BookingServiceImpl implements BookingService {
     @Override
     public List<BookingDto> findAllOwnerBookings(Long userId, BookingState state, int from, int size) {
         getUser(userId);
-        Pageable pageRequest = PageRequest.of(from, size, BOOKINGS_SORTING);
+        Pageable pageRequest = CustomPageRequest.of(from, size, BOOKINGS_SORTING);
         List<Booking> bookings = getByUser(state, userId, pageRequest);
         return bookings != null ? bookings.stream()
                 .map(bookingMapper::toDto)

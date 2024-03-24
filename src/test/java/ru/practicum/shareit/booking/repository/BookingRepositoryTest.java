@@ -8,10 +8,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.jdbc.EmbeddedDatabaseConnection;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import ru.practicum.shareit.booking.model.Booking;
 import ru.practicum.shareit.booking.model.BookingStatus;
+import ru.practicum.shareit.common.pagination.CustomPageRequest;
 import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.item.repository.ItemRepository;
 import ru.practicum.shareit.user.model.User;
@@ -35,7 +35,7 @@ import static ru.practicum.shareit.booking.service.BookingServiceImpl.BOOKINGS_S
 @Transactional
 class BookingRepositoryTest {
 
-    private static final Pageable pageRequest = PageRequest.of(0, 50, BOOKINGS_SORTING);
+    private static final Pageable pageRequest = CustomPageRequest.of(0, 50, BOOKINGS_SORTING);
     @Autowired
     private BookingRepository bookingRepository;
     @Autowired

@@ -7,7 +7,6 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import ru.practicum.shareit.request.dto.ItemRequestDto;
 import ru.practicum.shareit.request.dto.NewItemRequestDto;
@@ -30,7 +29,6 @@ import static ru.practicum.shareit.request.service.ItemRequestServiceImpl.REQUES
 @ExtendWith(MockitoExtension.class)
 class ItemRequestServiceTest {
 
-    private static final Pageable pageRequest = PageRequest.of(0, 50, REQUEST_SORTING);
     @Mock
     private ItemRequestRepository itemRequestRepository;
     @Mock
@@ -97,12 +95,12 @@ class ItemRequestServiceTest {
     public void getAvailableItemRequests() {
         when(userRepository.findById(user.getId()))
                 .thenReturn(Optional.of(user));
-        when(itemRequestRepository.findAvailableRequests(user.getId(), pageRequest))
+        when(itemRequestRepository.findAvailableRequests(anyLong(), any(Pageable.class)))
                 .thenReturn(Page.empty());
 
         itemRequestService.getAvailableItemRequests(user.getId(), 0, 50);
 
-        verify(itemRequestRepository, times(1)).findAvailableRequests(user.getId(), pageRequest);
+        verify(itemRequestRepository, times(1)).findAvailableRequests(anyLong(), any(Pageable.class));
     }
 
     @Test

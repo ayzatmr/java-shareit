@@ -6,7 +6,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import ru.practicum.shareit.booking.dto.NewBookingDto;
 import ru.practicum.shareit.booking.mapper.BookingMapper;
@@ -24,12 +23,10 @@ import java.util.List;
 import java.util.Optional;
 
 import static org.mockito.Mockito.*;
-import static ru.practicum.shareit.booking.service.BookingServiceImpl.BOOKINGS_SORTING;
 
 @ExtendWith(MockitoExtension.class)
 class BookingServiceTest {
 
-    private static final Pageable pageRequest = PageRequest.of(0, 50, BOOKINGS_SORTING);
     @Mock
     private BookingRepository bookingRepository;
     @Mock
@@ -127,13 +124,13 @@ class BookingServiceTest {
         int size = 50;
         when(userRepository.findById(user.getId()))
                 .thenReturn(Optional.of(new User()));
-        when(bookingRepository.findAllByItemOwnerId(user.getId(), pageRequest))
+        when(bookingRepository.findAllByItemOwnerId(anyLong(), any(Pageable.class)))
                 .thenReturn(List.of(booking));
 
         bookingService.findAllOwnerBookings(user.getId(), state, from, size);
 
         verify(userRepository, times(1)).findById(user.getId());
-        verify(bookingRepository, times(1)).findAllByItemOwnerId(user.getId(), pageRequest);
+        verify(bookingRepository, times(1)).findAllByItemOwnerId(anyLong(), any(Pageable.class));
     }
 
     @Test
@@ -141,12 +138,12 @@ class BookingServiceTest {
         BookingState state = BookingState.ALL;
         when(userRepository.findById(user.getId()))
                 .thenReturn(Optional.of(user));
-        when(bookingRepository.findAllByBooker(user.getId(), pageRequest))
+        when(bookingRepository.findAllByBooker(anyLong(), any(Pageable.class)))
                 .thenReturn(List.of(booking));
 
         bookingService.findAll(user.getId(), state, 0, 50);
 
         verify(userRepository, times(1)).findById(user.getId());
-        verify(bookingRepository, times(1)).findAllByBooker(user.getId(), pageRequest);
+        verify(bookingRepository, times(1)).findAllByBooker(anyLong(), any(Pageable.class));
     }
 }

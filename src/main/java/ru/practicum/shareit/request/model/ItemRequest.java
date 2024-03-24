@@ -18,16 +18,13 @@ import java.util.List;
 public class ItemRequest {
 
     private final LocalDateTime created = LocalDateTime.now();
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
-
-    private String description;
-
     @OneToMany(mappedBy = "request")
     @ToString.Exclude
     private final List<Item> items = new ArrayList<>();
-
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+    private String description;
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id")
     @ToString.Exclude
