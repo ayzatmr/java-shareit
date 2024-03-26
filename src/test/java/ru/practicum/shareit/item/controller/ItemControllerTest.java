@@ -8,6 +8,7 @@ import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import ru.practicum.shareit.item.ItemController;
 import ru.practicum.shareit.item.dto.CommentDto;
 import ru.practicum.shareit.item.dto.ItemDto;
@@ -15,9 +16,11 @@ import ru.practicum.shareit.item.dto.NewCommentDto;
 import ru.practicum.shareit.item.dto.NewItemDto;
 import ru.practicum.shareit.item.service.ItemService;
 
+import javax.validation.ConstraintViolationException;
 import java.util.List;
 
 import static org.hamcrest.Matchers.is;
+import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
@@ -88,6 +91,22 @@ class ItemControllerTest {
 
     @Test
     @SneakyThrows
+    void patchItemNotValidBody() {
+        NewItemDto notValid = NewItemDto.builder()
+                .id(2L)
+                .name("QAZWSXQAZWSXSS".repeat(15))
+                .build();
+        mvc.perform(patch("/items/{itemId}", notValid.getId())
+                        .header(USER_HEADER, userId)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(notValid)))
+                .andExpect(status().isBadRequest())
+                .andExpect(result ->
+                        assertInstanceOf(MethodArgumentNotValidException.class, result.getResolvedException()));
+    }
+
+    @Test
+    @SneakyThrows
     void getItemById() {
         when(itemService.get(userId, itemDto.getId()))
                 .thenReturn(itemDto);
@@ -121,7 +140,6 @@ class ItemControllerTest {
     void getAllItemsByUserId() {
         when(itemService.getItems(userId, 0, 50))
                 .thenReturn(List.of(itemDto));
-
         mvc.perform(get("/items")
                         .header(USER_HEADER, userId))
                 .andExpect(status().isOk())
@@ -133,6 +151,18 @@ class ItemControllerTest {
                 .andExpect(jsonPath("$.[0].available", is(itemDto.getAvailable())));
 
         verify(itemService, times(1)).getItems(userId, 0, 50);
+    }
+
+    @Test
+    @SneakyThrows
+    void getAllItemsByUserIdPaginationValidation() {
+        mvc.perform(get("/items")
+                        .header(USER_HEADER, userId)
+                        .param("from", "-1")
+                        .param("size", "0"))
+                .andExpect(status().isBadRequest())
+                .andExpect(result ->
+                        assertInstanceOf(ConstraintViolationException.class, result.getResolvedException()));
     }
 
 
@@ -175,5 +205,18 @@ class ItemControllerTest {
                 .andExpect(jsonPath("$.created", is(commentDto.getCreated())));
 
         verify(itemService, times(1)).addCommentToItem(userId, itemDto.getId(), addCommentDto);
+    }
+
+    @Test
+    @SneakyThrows
+    void addCommentToItemNotValidData() {
+        NewCommentDto addCommentDto = new NewCommentDto("");
+        mvc.perform(post("/items/{itemId}/comment", itemDto.getId())
+                        .header(USER_HEADER, userId)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(addCommentDto)))
+                .andExpect(status().isBadRequest())
+                .andExpect(result ->
+                        assertInstanceOf(MethodArgumentNotValidException.class, result.getResolvedException()));
     }
 }

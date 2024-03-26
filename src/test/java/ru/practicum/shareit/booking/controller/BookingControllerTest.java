@@ -18,6 +18,7 @@ import ru.practicum.shareit.booking.model.BookingState;
 import ru.practicum.shareit.booking.service.BookingService;
 import ru.practicum.shareit.common.exception.ObjectNotFoundException;
 
+import javax.validation.ConstraintViolationException;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -205,6 +206,23 @@ class BookingControllerTest {
                 .andExpect(jsonPath("$.[0].end", is(bookingDto.getEnd())));
 
         verify(bookingService, times(1)).findAll(userId, state, from, size);
+    }
+
+    @Test
+    @SneakyThrows
+    void findAlBookingsCheckPaginationValidation() {
+        BookingState state = BookingState.FUTURE;
+        int from = -1;
+        int size = 0;
+
+        mvc.perform(get("/bookings")
+                        .header(USER_HEADER, userId)
+                        .param("state", state.name())
+                        .param("from", "-1")
+                        .param("size", "0"))
+                .andExpect(status().isBadRequest())
+                .andExpect(result ->
+                        assertInstanceOf(ConstraintViolationException.class, result.getResolvedException()));
     }
 
 

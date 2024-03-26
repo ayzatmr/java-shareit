@@ -15,6 +15,7 @@ import ru.practicum.shareit.request.dto.ItemRequestDto;
 import ru.practicum.shareit.request.dto.NewItemRequestDto;
 import ru.practicum.shareit.request.service.ItemRequestService;
 
+import javax.validation.ConstraintViolationException;
 import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.List;
@@ -120,6 +121,17 @@ class ItemRequestControllerTest {
         verify(itemRequestService, times(1)).getAvailableItemRequests(userId, 0, 50);
     }
 
+    @Test
+    @SneakyThrows
+    public void getAvailableItemRequestsPaginationValidation() {
+        mvc.perform(get("/requests/all")
+                        .header(USER_HEADER, userId)
+                        .param("from", "-1")
+                        .param("size", "-1"))
+                .andExpect(status().isBadRequest())
+                .andExpect(result ->
+                        assertInstanceOf(ConstraintViolationException.class, result.getResolvedException()));
+    }
 
     @Test
     @SneakyThrows

@@ -23,6 +23,6 @@ public class UserDto {
     private String email;
 
     @NotBlank(message = "name can not be blank", groups = {Create.class})
-    @Size(max = 100, message = "max size can not be more than 100", groups = {Create.class})
+    @Size(max = 100, message = "max size can not be more than 100", groups = {Update.class, Create.class})
     private String name;
 }

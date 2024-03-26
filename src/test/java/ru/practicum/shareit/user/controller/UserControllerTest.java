@@ -111,6 +111,20 @@ class UserControllerTest {
 
     @Test
     @SneakyThrows
+    void updateNotValidUserData() {
+        userDto.setEmail("xxx");
+        userDto.setName("qazwsxedcr".repeat(10));
+        mvc.perform(patch("/users/{userId}", userDto.getId())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(userDto))
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isBadRequest())
+                .andExpect(result ->
+                        assertInstanceOf(MethodArgumentNotValidException.class, result.getResolvedException()));
+    }
+
+    @Test
+    @SneakyThrows
     void getAlreadyExistExceptionOnUserUpdate() {
         Long userId = 300L;
         when(userService.patch(userDto, userId))
