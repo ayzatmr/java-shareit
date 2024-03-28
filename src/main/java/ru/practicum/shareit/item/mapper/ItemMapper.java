@@ -13,6 +13,7 @@ import java.util.List;
 
 @Mapper(componentModel = "spring")
 public interface ItemMapper {
+    @Mapping(source = "request.id", target = "requestId")
     ItemDto toDto(Item item);
 
     List<ItemDto> toDtoList(List<Item> item);

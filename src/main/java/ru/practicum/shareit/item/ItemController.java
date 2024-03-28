@@ -13,9 +13,10 @@ import ru.practicum.shareit.user.dto.Update;
 
 import javax.validation.Valid;
 import javax.validation.constraints.Positive;
+import javax.validation.constraints.PositiveOrZero;
 import java.util.List;
 
-import static ru.practicum.shareit.common.model.Constants.USER_HEADER;
+import static ru.practicum.shareit.common.model.Constants.*;
 
 @RestController
 @RequestMapping("/items")
@@ -25,8 +26,10 @@ public class ItemController {
     private final ItemService itemService;
 
     @GetMapping
-    public List<ItemDto> findAll(@RequestHeader(USER_HEADER) long userId) {
-        return itemService.getItems(userId);
+    public List<ItemDto> findAll(@RequestHeader(USER_HEADER) long userId,
+                                 @RequestParam(defaultValue = MIN_SIZE) @PositiveOrZero int from,
+                                 @RequestParam(defaultValue = MAX_SIZE) @Positive int size) {
+        return itemService.getItems(userId, from, size);
     }
 
     @PostMapping
@@ -55,8 +58,10 @@ public class ItemController {
     }
 
     @GetMapping("/search")
-    public List<ItemDto> search(@RequestParam String text) {
-        return itemService.search(text);
+    public List<ItemDto> search(@RequestParam String text,
+                                @RequestParam(defaultValue = MIN_SIZE) @PositiveOrZero int from,
+                                @RequestParam(defaultValue = MAX_SIZE) @Positive int size) {
+        return itemService.search(text, from, size);
     }
 
     @PostMapping("/{itemId}/comment")

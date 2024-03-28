@@ -1,6 +1,6 @@
 package ru.practicum.shareit.booking.repository;
 
-import org.springframework.data.domain.Sort;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import ru.practicum.shareit.booking.model.Booking;
@@ -22,40 +22,40 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
     List<Booking> findAllByItemIdIn(List<Long> itemIds, BookingStatus bookingStatus);
 
     @Query("SELECT b FROM Booking b JOIN FETCH b.item i JOIN FETCH b.booker u WHERE b.item.owner.id = ?1")
-    List<Booking> findAllByItemOwnerId(Long ownerId, Sort sort);
+    List<Booking> findAllByItemOwnerId(Long ownerId, Pageable pageable);
 
     @Query("SELECT b FROM Booking b JOIN FETCH b.item i JOIN FETCH b.booker u WHERE i.owner.id = ?1 AND b.start <= ?2 AND b.end >= ?3")
     List<Booking> findCurrentByOwnerId(
             Long ownerId,
             LocalDateTime startBefore,
             LocalDateTime endAfter,
-            Sort sort);
+            Pageable pageable);
 
     @Query("SELECT b FROM Booking b JOIN FETCH b.item i JOIN FETCH b.booker u WHERE i.owner.id = ?1 AND b.end <= ?2")
-    List<Booking> findPastByOwnerId(Long ownerId, LocalDateTime endBefore, Sort sort);
+    List<Booking> findPastByOwnerId(Long ownerId, LocalDateTime endBefore, Pageable pageable);
 
     @Query("SELECT b FROM Booking b JOIN FETCH b.item i JOIN FETCH b.booker u WHERE i.owner.id = ?1 AND b.start >= ?2")
-    List<Booking> findFutureByOwnerId(Long ownerId, LocalDateTime startAfter, Sort sort);
+    List<Booking> findFutureByOwnerId(Long ownerId, LocalDateTime startAfter, Pageable pageable);
 
     @Query("SELECT b FROM Booking b JOIN FETCH b.item i JOIN FETCH b.booker u WHERE i.owner.id = ?1 AND b.status = ?2")
-    List<Booking> finByOwnerAndStatus(Long ownerId, BookingStatus status);
+    List<Booking> finByOwnerAndStatus(Long ownerId, BookingStatus status, Pageable pageable);
 
     @Query("SELECT b FROM Booking b JOIN FETCH b.item i JOIN FETCH b.booker u WHERE b.booker.id = ?1")
-    List<Booking> findAllByBooker(Long bookerId, Sort sort);
+    List<Booking> findAllByBooker(Long bookerId, Pageable pageable);
 
     @Query("SELECT b FROM Booking b JOIN FETCH b.item i JOIN FETCH b.booker u WHERE b.booker.id = ?1 AND b.start <= ?2 AND b.end >= ?3")
     List<Booking> findCurrentByBooker(
             Long ownerId,
             LocalDateTime startBefore,
             LocalDateTime endAfter,
-            Sort sort);
+            Pageable pageable);
 
     @Query("SELECT b FROM Booking b JOIN FETCH b.item i JOIN FETCH b.booker u WHERE b.booker.id = ?1 AND b.end <= ?2")
-    List<Booking> findPastByBooker(Long ownerId, LocalDateTime endBefore, Sort sort);
+    List<Booking> findPastByBooker(Long ownerId, LocalDateTime endBefore, Pageable pageable);
 
     @Query("SELECT b FROM Booking b JOIN FETCH b.item i JOIN FETCH b.booker u WHERE b.booker.id = ?1 AND b.start >= ?2")
-    List<Booking> findFutureByBooker(Long ownerId, LocalDateTime startAfter, Sort sort);
+    List<Booking> findFutureByBooker(Long ownerId, LocalDateTime startAfter, Pageable pageable);
 
     @Query("SELECT b FROM Booking b JOIN FETCH b.item i JOIN FETCH b.booker u WHERE b.booker.id = ?1 AND b.status = ?2")
-    List<Booking> findByBookerAndStatus(Long ownerId, BookingStatus status);
+    List<Booking> findByBookerAndStatus(Long ownerId, BookingStatus status, Pageable pageable);
 }

@@ -1,12 +1,15 @@
 package ru.practicum.shareit.item.service;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import ru.practicum.shareit.booking.model.Booking;
 import ru.practicum.shareit.booking.model.BookingStatus;
 import ru.practicum.shareit.booking.repository.BookingRepository;
 import ru.practicum.shareit.common.exception.ObjectNotFoundException;
 import ru.practicum.shareit.common.exception.ValidationException;
+import ru.practicum.shareit.common.pagination.CustomPageRequest;
 import ru.practicum.shareit.item.dto.CommentDto;
 import ru.practicum.shareit.item.dto.ItemDto;
 import ru.practicum.shareit.item.dto.NewCommentDto;
@@ -17,6 +20,8 @@ import ru.practicum.shareit.item.model.Comment;
 import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.item.repository.CommentRepository;
 import ru.practicum.shareit.item.repository.ItemRepository;
+import ru.practicum.shareit.request.model.ItemRequest;
+import ru.practicum.shareit.request.repository.ItemRequestRepository;
 import ru.practicum.shareit.user.model.User;
 import ru.practicum.shareit.user.repository.UserRepository;
 
@@ -31,15 +36,17 @@ import java.util.stream.Collectors;
 public class ItemServiceImpl implements ItemService {
     private final ItemRepository itemRepository;
     private final UserRepository userRepository;
+    private final ItemRequestRepository itemRequestRepository;
     private final BookingRepository bookingRepository;
     private final CommentRepository commentRepository;
     private final ItemMapper itemMapper;
     private final CommentMapper commentMapper;
 
     @Override
-    public List<ItemDto> getItems(long userId) {
+    public List<ItemDto> getItems(long userId, int from, int size) {
         getUser(userId);
-        List<Item> items = itemRepository.findAllByOwnerIdOrderById(userId);
+        Pageable pageRequest = CustomPageRequest.of(from, size, Sort.unsorted());
+        List<Item> items = itemRepository.findAllByOwnerIdOrderById(userId, pageRequest);
         return mergeBookingsAndComments(items);
     }
 
@@ -58,10 +65,11 @@ public class ItemServiceImpl implements ItemService {
     }
 
     @Override
-    public ItemDto addNewItem(long userId, NewItemDto item) {
+    public ItemDto addNewItem(long userId, NewItemDto newItemDto) {
         User user = getUser(userId);
-        Item itemModel = itemMapper.toModel(item);
+        Item itemModel = itemMapper.toModel(newItemDto);
         itemModel.setOwner(user);
+        addRequestToItem(newItemDto, itemModel);
         Item newItem = itemRepository.save(itemModel);
         return itemMapper.toDto(newItem);
     }
@@ -100,11 +108,12 @@ public class ItemServiceImpl implements ItemService {
     }
 
     @Override
-    public List<ItemDto> search(String text) {
+    public List<ItemDto> search(String text, int from, int size) {
         if (text.isBlank()) {
             return Collections.emptyList();
         }
-        return itemRepository.findAllByNameOrDescription("%" + text.toLowerCase() + "%")
+        Pageable pageRequest = CustomPageRequest.of(from, size, Sort.unsorted());
+        return itemRepository.findAllByNameOrDescription("%" + text.toLowerCase() + "%", pageRequest)
                 .stream()
                 .map(itemMapper::toDto)
                 .collect(Collectors.toList());
@@ -179,4 +188,13 @@ public class ItemServiceImpl implements ItemService {
         return result;
     }
 
+    private void addRequestToItem(NewItemDto itemDto, Item item) {
+        Long requestId = itemDto.getRequestId();
+        if (requestId != null) {
+            ItemRequest itemRequest = itemRequestRepository.findById(requestId)
+                    .orElseThrow(() -> new ObjectNotFoundException("item request is not found"));
+            item.setRequest(itemRequest);
+            itemRequest.getItems().add(item);
+        }
+    }
 }

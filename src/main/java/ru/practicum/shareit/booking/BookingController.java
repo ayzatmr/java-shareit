@@ -1,6 +1,7 @@
 package ru.practicum.shareit.booking;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import ru.practicum.shareit.booking.dto.BookingDto;
 import ru.practicum.shareit.booking.dto.NewBookingDto;
@@ -8,13 +9,16 @@ import ru.practicum.shareit.booking.model.BookingState;
 import ru.practicum.shareit.booking.service.BookingService;
 
 import javax.validation.Valid;
+import javax.validation.constraints.Positive;
+import javax.validation.constraints.PositiveOrZero;
 import java.util.List;
 
-import static ru.practicum.shareit.common.model.Constants.USER_HEADER;
+import static ru.practicum.shareit.common.model.Constants.*;
 
 @RestController
 @RequestMapping(path = "/bookings")
 @RequiredArgsConstructor
+@Validated
 public class BookingController {
 
     private final BookingService bookingService;
@@ -40,13 +44,17 @@ public class BookingController {
 
     @GetMapping
     public List<BookingDto> findAll(@RequestHeader(USER_HEADER) Long userId,
-                                    @RequestParam(defaultValue = "ALL") BookingState state) {
-        return bookingService.findAll(userId, state);
+                                    @RequestParam(defaultValue = "ALL") BookingState state,
+                                    @RequestParam(defaultValue = MIN_SIZE) @PositiveOrZero int from,
+                                    @RequestParam(defaultValue = MAX_SIZE) @Positive int size) {
+        return bookingService.findAll(userId, state, from, size);
     }
 
     @GetMapping("/owner")
     public List<BookingDto> getAllOwnerBookings(@RequestHeader(USER_HEADER) Long userId,
-                                                @RequestParam(defaultValue = "ALL") BookingState state) {
-        return bookingService.findAllOwnerBookings(userId, state);
+                                                @RequestParam(defaultValue = "ALL") BookingState state,
+                                                @RequestParam(defaultValue = MIN_SIZE) @PositiveOrZero int from,
+                                                @RequestParam(defaultValue = MAX_SIZE) @Positive int size) {
+        return bookingService.findAllOwnerBookings(userId, state, from, size);
     }
 }
