@@ -40,15 +40,6 @@ public class BaseHttpClient {
         return makeAndSendRequest(HttpMethod.POST, path, userId, parameters, body, returnType);
     }
 
-    protected <T, S> S put(String path, long userId, T body, Class<S> returnType) {
-        return put(path, userId, null, body, returnType);
-    }
-
-    protected <T, S> S put(String path, long userId, @Nullable Map<String, Object> parameters, T body,
-                           Class<S> returnType) {
-        return makeAndSendRequest(HttpMethod.PUT, path, userId, parameters, body, returnType);
-    }
-
     protected <T, S> S patch(String path, T body, Class<S> returnType) {
         return patch(path, null, null, body, returnType);
     }

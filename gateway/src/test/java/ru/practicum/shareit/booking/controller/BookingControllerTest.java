@@ -147,6 +147,7 @@ class BookingControllerTest {
                 .andExpect(status().isNotFound())
                 .andExpect(result ->
                         assertInstanceOf(ObjectNotFoundException.class, result.getResolvedException()));
+        verify(bookingClient, times(1)).get(userId, bookingId);
     }
 
     @Test
@@ -161,7 +162,9 @@ class BookingControllerTest {
                         .param("size", String.valueOf(size)))
                 .andExpect(status().is5xxServerError())
                 .andExpect(result ->
-                        assertInstanceOf(MethodArgumentTypeMismatchException.class, result.getResolvedException()));
+                        assertInstanceOf(MethodArgumentTypeMismatchException.class, result.getResolvedException()))
+                .andExpect(jsonPath("$.error", is("Unknown state: UNSUPPORTED_STATUS")));
+
     }
 
     @Test
@@ -196,8 +199,6 @@ class BookingControllerTest {
     @SneakyThrows
     void findAlBookingsCheckPaginationValidation() {
         BookingState state = BookingState.FUTURE;
-        int from = -1;
-        int size = 0;
 
         mvc.perform(get("/bookings")
                         .header(USER_HEADER, userId)
@@ -207,6 +208,7 @@ class BookingControllerTest {
                 .andExpect(status().isBadRequest())
                 .andExpect(result ->
                         assertInstanceOf(ConstraintViolationException.class, result.getResolvedException()));
+
     }
 
 
