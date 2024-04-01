@@ -14,6 +14,7 @@ import java.util.List;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.nullValue;
 
 class ItemMapperTest {
 
@@ -76,5 +77,23 @@ class ItemMapperTest {
         assertThat(itemBookingDto.getId(), is(booking.getId()));
         assertThat(itemBookingDto.getStatus(), is(booking.getStatus()));
         assertThat(itemBookingDto.getBookerId(), is(booking.getBooker().getId()));
+    }
+
+    @Test
+    void toNullDto() {
+        ItemDto dto = itemMapper.toDto(null);
+        assertThat(dto, nullValue());
+    }
+
+    @Test
+    void toNullModel() {
+        Item item = itemMapper.toModel(null);
+        assertThat(item, nullValue());
+    }
+
+    @Test
+    void toNullDtoList() {
+        List<ItemDto> itemDtos = itemMapper.toDtoList(null);
+        assertThat(itemDtos, nullValue());
     }
 }

@@ -34,4 +34,8 @@ class ShareItTests {
         assertThat(itemRequestController).isNotNull();
     }
 
+    @Test
+    public void applicationStarts() {
+        ShareItServer.main(new String[]{});
+    }
 }

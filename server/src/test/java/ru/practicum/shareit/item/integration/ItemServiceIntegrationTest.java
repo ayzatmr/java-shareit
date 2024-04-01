@@ -103,8 +103,17 @@ class ItemServiceIntegrationTest {
     @Test
     void getItemByIdNotFound() {
         ObjectNotFoundException e = assertThrows(ObjectNotFoundException.class,
-                () -> itemService.get(200L, user2.getId()));
+                () -> itemService.get(user2.getId(), 100L));
         assertThat(e.getMessage(), is("item is not found"));
+    }
+
+    @Test
+    void deleteItemNotByOwner() {
+        ItemDto savedItem = itemService.addNewItem(user.getId(), newItemDto);
+
+        ValidationException e = assertThrows(ValidationException.class,
+                () -> itemService.deleteItem(user2.getId(), savedItem.getId()));
+        assertThat(e.getMessage(), is("you can not delete that item"));
     }
 
     @Test
@@ -121,6 +130,32 @@ class ItemServiceIntegrationTest {
         assertThat(updatedItem.getName(), is(itemUpdateDto.getName()));
         assertThat(updatedItem.getDescription(), is(itemUpdateDto.getDescription()));
         assertThat(updatedItem.getAvailable(), is(itemUpdateDto.getAvailable()));
+    }
+
+    @Test
+    void patchItemNotByOwner() {
+        ItemDto savedItem = itemService.addNewItem(user.getId(), newItemDto);
+
+        NewItemDto itemUpdateDto = NewItemDto.builder()
+                .name("new name")
+                .description("new description")
+                .available(false)
+                .build();
+        ObjectNotFoundException e = assertThrows(ObjectNotFoundException.class,
+                () -> itemService.patchItem(user2.getId(), itemUpdateDto, savedItem.getId()));
+        assertThat(e.getMessage(), is("you can not update that item"));
+    }
+
+    @Test
+    void patchNotFoundItem() {
+        NewItemDto itemUpdateDto = NewItemDto.builder()
+                .name("new name")
+                .description("new description")
+                .available(false)
+                .build();
+        ObjectNotFoundException e = assertThrows(ObjectNotFoundException.class,
+                () -> itemService.patchItem(user2.getId(), itemUpdateDto, 100L));
+        assertThat(e.getMessage(), is("item is not found"));
     }
 
     @Test

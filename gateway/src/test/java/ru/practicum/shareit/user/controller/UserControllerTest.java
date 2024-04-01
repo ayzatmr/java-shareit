@@ -120,7 +120,9 @@ class UserControllerTest {
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isBadRequest())
                 .andExpect(result ->
-                        assertInstanceOf(MethodArgumentNotValidException.class, result.getResolvedException()));
+                        assertInstanceOf(MethodArgumentNotValidException.class, result.getResolvedException()))
+                .andExpect(jsonPath("$.errors.[0]", is("email should be valid")));
+
     }
 
     @Test

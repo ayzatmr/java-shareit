@@ -2,6 +2,7 @@ package ru.practicum.shareit.request.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.SneakyThrows;
+import org.hibernate.exception.ConstraintViolationException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,6 +19,7 @@ import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.List;
 
+import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -114,5 +116,20 @@ class ItemRequestControllerTest {
                 .andExpect(content().string(objectMapper.writeValueAsString(itemRequestDto)));
 
         verify(itemRequestService, times(1)).get(userId, requestId);
+    }
+
+    @Test
+    @SneakyThrows
+    public void getAvailableItemRequestsPaginationValidation() {
+        when(itemRequestService.getAvailableItemRequests(userId, -1, -1))
+                .thenThrow(ConstraintViolationException.class);
+        mvc.perform(get("/requests/all")
+                        .header(USER_HEADER, userId)
+                        .param("from", "-1")
+                        .param("size", "-1"))
+                .andExpect(status().isBadRequest())
+                .andExpect(result ->
+                        assertInstanceOf(ConstraintViolationException.class, result.getResolvedException()));
+        verify(itemRequestService, times(1)).getAvailableItemRequests(userId, -1, -1);
     }
 }

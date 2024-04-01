@@ -87,7 +87,9 @@ class BookingControllerTest {
                         .contentType(APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(newBookingDto)))
                 .andExpect(status().isBadRequest())
-                .andExpect(result -> assertInstanceOf(MethodArgumentNotValidException.class, result.getResolvedException()));
+                .andExpect(result -> assertInstanceOf(MethodArgumentNotValidException.class, result.getResolvedException()))
+                .andExpect(jsonPath("$.errors.[0]", is("start_date should be in the future or present")));
+
     }
 
     @Test
@@ -204,10 +206,11 @@ class BookingControllerTest {
                         .header(USER_HEADER, userId)
                         .param("state", state.name())
                         .param("from", "-1")
-                        .param("size", "0"))
+                        .param("size", "10"))
                 .andExpect(status().isBadRequest())
                 .andExpect(result ->
-                        assertInstanceOf(ConstraintViolationException.class, result.getResolvedException()));
+                        assertInstanceOf(ConstraintViolationException.class, result.getResolvedException()))
+                .andExpect(jsonPath("$.errors.[0]", is("findAll.from: must be greater than or equal to 0")));
 
     }
 
