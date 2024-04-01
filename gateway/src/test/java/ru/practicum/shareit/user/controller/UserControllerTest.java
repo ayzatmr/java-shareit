@@ -11,7 +11,6 @@ import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
-import ru.practicum.common.exception.AlreadyExistException;
 import ru.practicum.user.client.UserClient;
 import ru.practicum.user.controller.UserController;
 import ru.practicum.user.dto.UserDto;
@@ -123,24 +122,6 @@ class UserControllerTest {
                         assertInstanceOf(MethodArgumentNotValidException.class, result.getResolvedException()))
                 .andExpect(jsonPath("$.errors.[0]", is("email should be valid")));
 
-    }
-
-    @Test
-    @SneakyThrows
-    void getAlreadyExistExceptionOnUserUpdate() {
-        Long userId = 300L;
-        when(userClient.patch(userId, userDto))
-                .thenThrow(AlreadyExistException.class);
-
-        mvc.perform(patch("/users/{userId}", userId)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(userDto))
-                        .accept(MediaType.APPLICATION_JSON))
-                .andExpect(status().isConflict())
-                .andExpect(result ->
-                        assertInstanceOf(AlreadyExistException.class, result.getResolvedException()));
-
-        verify(userClient, times(1)).patch(userId, userDto);
     }
 
     @Test

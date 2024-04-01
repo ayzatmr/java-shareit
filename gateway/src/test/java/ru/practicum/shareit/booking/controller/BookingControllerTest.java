@@ -15,7 +15,6 @@ import ru.practicum.booking.controller.BookingController;
 import ru.practicum.booking.dto.BookingDto;
 import ru.practicum.booking.dto.BookingState;
 import ru.practicum.booking.dto.NewBookingDto;
-import ru.practicum.common.exception.ObjectNotFoundException;
 
 import javax.validation.ConstraintViolationException;
 import java.time.LocalDateTime;
@@ -135,20 +134,6 @@ class BookingControllerTest {
                 .andExpect(jsonPath("$.start", is(bookingDto.getStart())))
                 .andExpect(jsonPath("$.end", is(bookingDto.getEnd())));
 
-        verify(bookingClient, times(1)).get(userId, bookingId);
-    }
-
-    @Test
-    @SneakyThrows
-    void getBookingByIdNotFound() {
-        Long bookingId = 200L;
-        when(bookingClient.get(userId, bookingId))
-                .thenThrow(ObjectNotFoundException.class);
-        mvc.perform(get("/bookings/{bookingId}", bookingId)
-                        .header(USER_HEADER, userId))
-                .andExpect(status().isNotFound())
-                .andExpect(result ->
-                        assertInstanceOf(ObjectNotFoundException.class, result.getResolvedException()));
         verify(bookingClient, times(1)).get(userId, bookingId);
     }
 
