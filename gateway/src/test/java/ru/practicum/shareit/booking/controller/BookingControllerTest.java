@@ -93,6 +93,20 @@ class BookingControllerTest {
 
     @Test
     @SneakyThrows
+    void checkStartDayOfBookingBeforeEndDate() {
+        newBookingDto.setStart(LocalDateTime.now().plusDays(10));
+        mvc.perform(post("/bookings")
+                        .header(USER_HEADER, userId)
+                        .contentType(APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(newBookingDto)))
+                .andExpect(status().isBadRequest())
+                .andExpect(result -> assertInstanceOf(MethodArgumentNotValidException.class, result.getResolvedException()))
+                .andExpect(jsonPath("$.errors.[0]", is("Booking is not valid")));
+
+    }
+
+    @Test
+    @SneakyThrows
     void updateBooking() {
         Long bookingId = 2L;
         Boolean approved = true;

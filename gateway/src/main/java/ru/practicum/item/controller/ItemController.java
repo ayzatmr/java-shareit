@@ -14,6 +14,7 @@ import ru.practicum.user.dto.Update;
 import javax.validation.Valid;
 import javax.validation.constraints.Positive;
 import javax.validation.constraints.PositiveOrZero;
+import java.util.Collections;
 import java.util.List;
 
 import static ru.practicum.common.model.Constants.*;
@@ -63,6 +64,9 @@ public class ItemController {
                                 @RequestHeader(USER_HEADER) long userId,
                                 @RequestParam(defaultValue = MIN_SIZE) @PositiveOrZero int from,
                                 @RequestParam(defaultValue = MAX_SIZE) @Positive int size) {
+        if (text.isBlank()) {
+            return Collections.emptyList();
+        }
         return itemClient.search(userId, text, from, size);
     }
 
